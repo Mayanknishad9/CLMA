@@ -28,7 +28,7 @@
 
 ## Motivation
 
-Large language models (ChatGPT, Copilot, Claude Code) excel at generating plausible code, but generated code frequently fails at execution time. The traditional workflow — the user copies error messages back to the model, the model produces a revised version, and the cycle repeats — is fundamentally **a manual feedback loop**.
+Large language models excel at generating plausible code, but generated code frequently fails at execution time. The traditional workflow — the user copies error messages back to the model, the model produces a revised version, and the cycle repeats — is fundamentally **a manual feedback loop**.
 
 CLMA **embeds this verification loop into the framework itself**. Given a natural language requirement, the system:
 
