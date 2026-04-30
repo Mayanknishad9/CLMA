@@ -45,6 +45,9 @@ The result: LLM-generated code that converges to a verifiably correct solution w
 
 ## Architecture Overview
 
+![Single Loop UI](docs/images/single-loop-ui.png)
+*Figure 1: CLMA Web UI — Single Loop mode with real-time flow graph, score gauge, and execution timeline.*
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Web UI (Flask + SSE)                          │
@@ -135,6 +138,9 @@ Extremely simple tasks bypass the full pipeline planner overhead:
 Complex multi-component tasks are decomposed by the C++ DAG Processor into independent sub-tasks. Each sub-task executes through its own closed-loop verification pipeline; results are aggregated upon completion.
 
 ### Nested Multi-Loop
+
+![Multi-Loop UI](docs/images/multi-loop-ui.png)
+*Figure 2: CLMA Web UI — Nested Multi-Loop mode with outer strategy loop and inner execution loop visualized in the flow graph.*
 
 - **Outer Loop (Strategy Loop)**: Defines the architectural strategy and validates strategy alignment
 - **Inner Loop (Execution Loop)**: Generates code, verifies correctness, evaluates code quality
