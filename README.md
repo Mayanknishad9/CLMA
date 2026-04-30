@@ -45,7 +45,8 @@ The result: LLM-generated code that converges to a verifiably correct solution w
 
 ## Architecture Overview
 
-![Single Loop UI](docs/images/single-loop-ui.png)
+![Single Loop UI](<img width="2559" height="1256" alt="屏幕截图 2026-04-30 204817" src="https://github.com/user-attachments/assets/51a0e31c-860b-4e37-87d9-0d2585d2bb43" />
+)
 *Figure 1: CLMA Web UI — Single Loop mode with real-time flow graph, score gauge, and execution timeline.*
 
 ```
@@ -139,7 +140,8 @@ Complex multi-component tasks are decomposed by the C++ DAG Processor into indep
 
 ### Nested Multi-Loop
 
-![Multi-Loop UI](docs/images/multi-loop-ui.png)
+![Multi-Loop UI](<img width="2559" height="1255" alt="屏幕截图 2026-04-30 204953" src="https://github.com/user-attachments/assets/0641739a-c2a8-4084-87c3-2c08744dd4c9" />
+)
 *Figure 2: CLMA Web UI — Nested Multi-Loop mode with outer strategy loop and inner execution loop visualized in the flow graph.*
 
 - **Outer Loop (Strategy Loop)**: Defines the architectural strategy and validates strategy alignment
