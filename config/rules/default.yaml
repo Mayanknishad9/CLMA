@@ -1,0 +1,41 @@
+rules:
+  - pattern: "write|create|generate|make|build"
+    validation_method: "code_generation"
+    recommended_tools: ["compiler", "interpreter"]
+    weights:
+      reasonableness: 0.4
+      executability: 0.4
+      satisfaction: 0.2
+    threshold: 0.3
+  - pattern: "explain|describe|what|how|why|tell|hello|help"
+    validation_method: "analysis"
+    recommended_tools: ["debugger", "profiler"]
+    weights:
+      reasonableness: 0.5
+      executability: 0.3
+      satisfaction: 0.2
+    threshold: 0.3
+  - pattern: "deploy|build|run"
+    validation_method: "execution"
+    recommended_tools: ["docker", "shell"]
+    weights:
+      reasonableness: 0.3
+      executability: 0.5
+      satisfaction: 0.2
+    threshold: 0.3
+  - pattern: "optimize|refactor|improve"
+    validation_method: "refactoring"
+    recommended_tools: ["linter", "profiler"]
+    weights:
+      reasonableness: 0.4
+      executability: 0.4
+      satisfaction: 0.2
+    threshold: 0.3
+  - pattern: ".*"
+    validation_method: "general"
+    recommended_tools: ["general"]
+    weights:
+      reasonableness: 0.4
+      executability: 0.3
+      satisfaction: 0.3
+    threshold: 0.3

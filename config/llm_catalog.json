@@ -1,0 +1,904 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2026-04-28T13:55:50Z",
+  "update_interval_hours": 72,
+  "auto_update_enabled": true,
+  "providers": {
+    "openai": {
+      "name": "OpenAI",
+      "short_name": "OpenAI",
+      "icon": "O",
+      "website": "https://openai.com",
+      "api_type": "openai",
+      "docs_url": "https://platform.openai.com/docs/api-reference",
+      "default_base_url": "https://api.openai.com/v1",
+      "api_key_required": true,
+      "category": "cloud",
+      "models": [
+        {
+          "id": "gpt-5.5-pro",
+          "name": "GPT-5.5 Pro",
+          "description": "GPT-5.5 Pro is OpenAI’s high-capability model optimized for deep reasoning and accuracy on complex, ",
+          "max_tokens": 1050000,
+          "pricing": "input: $30.0000/M, output: $180.0000/M"
+        },
+        {
+          "id": "gpt-5.5",
+          "name": "GPT-5.5",
+          "description": "GPT-5.5 is OpenAI’s frontier model designed for complex professional workloads, building on GPT-5.4 ",
+          "max_tokens": 1050000,
+          "pricing": "input: $5.0000/M, output: $30.0000/M"
+        },
+        {
+          "id": "gpt-5.4-pro",
+          "name": "GPT-5.4 Pro",
+          "description": "GPT-5.4 Pro is OpenAI's most advanced model, building on GPT-5.4's unified architecture with enhance",
+          "max_tokens": 1050000,
+          "pricing": "input: $30.0000/M, output: $180.0000/M"
+        },
+        {
+          "id": "gpt-5.4",
+          "name": "GPT-5.4",
+          "description": "GPT-5.4 is OpenAI’s latest frontier model, unifying the Codex and GPT lines into a single system. It",
+          "max_tokens": 1050000,
+          "pricing": "input: $2.5000/M, output: $15.0000/M"
+        },
+        {
+          "id": "gpt-5.4-mini",
+          "name": "GPT-5.4 Mini",
+          "description": "GPT-5.4 mini brings the core capabilities of GPT-5.4 to a faster, more efficient model optimized for",
+          "max_tokens": 400000,
+          "pricing": "input: $0.7500/M, output: $4.5000/M"
+        },
+        {
+          "id": "gpt-5.4-nano",
+          "name": "GPT-5.4 Nano",
+          "description": "GPT-5.4 nano is the most lightweight and cost-efficient variant of the GPT-5.4 family, optimized for",
+          "max_tokens": 400000,
+          "pricing": "input: $0.2000/M, output: $1.2500/M"
+        },
+        {
+          "id": "gpt-5.3-chat",
+          "name": "GPT-5.3 Chat",
+          "description": "GPT-5.3 Chat is an update to ChatGPT's most-used model that makes everyday conversations smoother, m",
+          "max_tokens": 128000,
+          "pricing": "input: $1.7500/M, output: $14.0000/M"
+        },
+        {
+          "id": "gpt-5.3-codex",
+          "name": "GPT-5.3 Codex",
+          "description": "GPT-5.3-Codex is OpenAI’s most advanced agentic coding model, combining the frontier software engine",
+          "max_tokens": 400000,
+          "pricing": "input: $1.7500/M, output: $14.0000/M"
+        },
+        {
+          "id": "gpt-5.2-pro",
+          "name": "GPT-5.2 Pro",
+          "description": "GPT-5.2 Pro is OpenAI’s most advanced model, offering major improvements in agentic coding and long ",
+          "max_tokens": 400000,
+          "pricing": "input: $21.0000/M, output: $168.0000/M"
+        },
+        {
+          "id": "gpt-5.2",
+          "name": "GPT-5.2",
+          "description": "GPT-5.2 is the latest frontier-grade model in the GPT-5 series, offering stronger agentic and long c",
+          "max_tokens": 400000,
+          "pricing": "input: $1.7500/M, output: $14.0000/M"
+        },
+        {
+          "id": "gpt-5.2-chat",
+          "name": "GPT-5.2 Chat",
+          "description": "GPT-5.2 Chat (AKA Instant) is the fast, lightweight member of the 5.2 family, optimized for low-late",
+          "max_tokens": 128000,
+          "pricing": "input: $1.7500/M, output: $14.0000/M"
+        },
+        {
+          "id": "gpt-5.2-codex",
+          "name": "GPT-5.2 Codex",
+          "description": "GPT-5.2-Codex is an upgraded version of GPT-5.1-Codex optimized for software engineering and coding ",
+          "max_tokens": 400000,
+          "pricing": "input: $1.7500/M, output: $14.0000/M"
+        },
+        {
+          "id": "gpt-5.1-codex-max",
+          "name": "GPT-5.1 Codex Max",
+          "description": "GPT-5.1-Codex-Max is OpenAI’s latest agentic coding model, designed for long-running, high-context s",
+          "max_tokens": 400000,
+          "pricing": "input: $1.2500/M, output: $10.0000/M"
+        },
+        {
+          "id": "gpt-5.1",
+          "name": "GPT-5.1",
+          "description": "GPT-5.1 is the latest frontier-grade model in the GPT-5 series, offering stronger general-purpose re",
+          "max_tokens": 400000,
+          "pricing": "input: $1.2500/M, output: $10.0000/M"
+        },
+        {
+          "id": "gpt-5.1-chat",
+          "name": "GPT-5.1 Chat",
+          "description": "GPT-5.1 Chat (AKA Instant is the fast, lightweight member of the 5.1 family, optimized for low-laten",
+          "max_tokens": 128000,
+          "pricing": "input: $1.2500/M, output: $10.0000/M"
+        },
+        {
+          "id": "gpt-5.1-codex",
+          "name": "GPT-5.1 Codex",
+          "description": "GPT-5.1-Codex is a specialized version of GPT-5.1 optimized for software engineering and coding work",
+          "max_tokens": 400000,
+          "pricing": "input: $1.2500/M, output: $10.0000/M"
+        },
+        {
+          "id": "gpt-5.1-codex-mini",
+          "name": "GPT-5.1 Codex Mini",
+          "description": "GPT-5.1-Codex-Mini is a smaller and faster version of GPT-5.1-Codex",
+          "max_tokens": 400000,
+          "pricing": "input: $0.2500/M, output: $2.0000/M"
+        },
+        {
+          "id": "gpt-5-pro",
+          "name": "GPT-5 Pro",
+          "description": "GPT-5 Pro is OpenAI’s most advanced model, offering major improvements in reasoning, code quality, a",
+          "max_tokens": 400000,
+          "pricing": "input: $15.0000/M, output: $120.0000/M"
+        },
+        {
+          "id": "gpt-5",
+          "name": "GPT-5",
+          "description": "GPT-5 is OpenAI’s most advanced model, offering major improvements in reasoning, code quality, and u",
+          "max_tokens": 400000,
+          "pricing": "input: $1.2500/M, output: $10.0000/M"
+        },
+        {
+          "id": "gpt-5-chat",
+          "name": "GPT-5 Chat",
+          "description": "GPT-5 Chat is designed for advanced, natural, multimodal, and context-aware conversations for enterp",
+          "max_tokens": 128000,
+          "pricing": "input: $1.2500/M, output: $10.0000/M"
+        },
+        {
+          "id": "gpt-5-mini",
+          "name": "GPT-5 Mini",
+          "description": "GPT-5 Mini is a compact version of GPT-5, designed to handle lighter-weight reasoning tasks. It prov",
+          "max_tokens": 400000,
+          "pricing": "input: $0.2500/M, output: $2.0000/M"
+        },
+        {
+          "id": "gpt-5-nano",
+          "name": "GPT-5 Nano",
+          "description": "GPT-5-Nano is the smallest and fastest variant in the GPT-5 system, optimized for developer tools, r",
+          "max_tokens": 400000,
+          "pricing": "input: $0.0500/M, output: $0.4000/M"
+        },
+        {
+          "id": "gpt-5-codex",
+          "name": "GPT-5 Codex",
+          "description": "GPT-5-Codex is a specialized version of GPT-5 optimized for software engineering and coding workflow",
+          "max_tokens": 400000,
+          "pricing": "input: $1.2500/M, output: $10.0000/M"
+        },
+        {
+          "id": "o4-mini-high",
+          "name": "o4-mini High",
+          "description": "OpenAI o4-mini-high is the same model as [o4-mini](/openai/o4-mini) with reasoning_effort set to hig",
+          "max_tokens": 200000,
+          "pricing": "input: $1.1000/M, output: $4.4000/M"
+        },
+        {
+          "id": "o4-mini",
+          "name": "o4-mini",
+          "description": "OpenAI o4-mini is a compact reasoning model in the o-series, optimized for fast, cost-efficient perf",
+          "max_tokens": 200000,
+          "pricing": "input: $1.1000/M, output: $4.4000/M"
+        },
+        {
+          "id": "o3-pro",
+          "name": "o3 Pro",
+          "description": "The o-series of models are trained with reinforcement learning to think before they answer and perfo",
+          "max_tokens": 200000,
+          "pricing": "input: $20.0000/M, output: $80.0000/M"
+        },
+        {
+          "id": "o3",
+          "name": "o3",
+          "description": "o3 is a well-rounded and powerful model across domains. It sets a new standard for math, science, co",
+          "max_tokens": 200000,
+          "pricing": "input: $2.0000/M, output: $8.0000/M"
+        },
+        {
+          "id": "o3-mini-high",
+          "name": "o3-mini High",
+          "description": "OpenAI o3-mini-high is the same model as [o3-mini](/openai/o3-mini) with reasoning_effort set to hig",
+          "max_tokens": 200000,
+          "pricing": "input: $1.1000/M, output: $4.4000/M"
+        },
+        {
+          "id": "o3-mini",
+          "name": "o3-mini",
+          "description": "OpenAI o3-mini is a cost-efficient language model optimized for STEM reasoning tasks, particularly e",
+          "max_tokens": 200000,
+          "pricing": "input: $1.1000/M, output: $4.4000/M"
+        },
+        {
+          "id": "gpt-4.1",
+          "name": "GPT-4.1",
+          "description": "GPT-4.1 is a flagship large language model optimized for advanced instruction following, real-world ",
+          "max_tokens": 1047576,
+          "pricing": "input: $2.0000/M, output: $8.0000/M"
+        },
+        {
+          "id": "gpt-4.1-mini",
+          "name": "GPT-4.1 Mini",
+          "description": "GPT-4.1 Mini is a mid-sized model delivering performance competitive with GPT-4o at substantially lo",
+          "max_tokens": 1047576,
+          "pricing": "input: $0.4000/M, output: $1.6000/M"
+        },
+        {
+          "id": "gpt-4.1-nano",
+          "name": "GPT-4.1 Nano",
+          "description": "For tasks that demand low latency, GPT‑4.1 nano is the fastest and cheapest model in the GPT-4.1 ser",
+          "max_tokens": 1047576,
+          "pricing": "input: $0.1000/M, output: $0.4000/M"
+        },
+        {
+          "id": "gpt-4o",
+          "name": "GPT-4o",
+          "description": "GPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text",
+          "max_tokens": 128000,
+          "pricing": "input: $2.5000/M, output: $10.0000/M"
+        },
+        {
+          "id": "gpt-4o-mini",
+          "name": "GPT-4o-mini",
+          "description": "GPT-4o mini is OpenAI's newest model after [GPT-4 Omni](/models/openai/gpt-4o), supporting both text",
+          "max_tokens": 128000,
+          "pricing": "input: $0.1500/M, output: $0.6000/M"
+        }
+      ]
+    },
+    "anthropic": {
+      "name": "Anthropic",
+      "short_name": "Anthropic",
+      "icon": "A",
+      "website": "https://anthropic.com",
+      "api_type": "anthropic",
+      "docs_url": "https://docs.anthropic.com/en/api",
+      "default_base_url": "https://api.anthropic.com/v1",
+      "api_key_required": true,
+      "category": "cloud",
+      "models": [
+        {
+          "id": "claude-opus-4.7",
+          "name": "Claude Opus 4.7",
+          "description": "Opus 4.7 is the next generation of Anthropic's Opus family, built for long-running, asynchronous age",
+          "max_tokens": 1000000,
+          "pricing": "input: $5.0000/M, output: $25.0000/M"
+        },
+        {
+          "id": "claude-opus-4.6",
+          "name": "Claude Opus 4.6",
+          "description": "Opus 4.6 is Anthropic’s strongest model for coding and long-running professional tasks. It is built ",
+          "max_tokens": 1000000,
+          "pricing": "input: $5.0000/M, output: $25.0000/M"
+        },
+        {
+          "id": "claude-opus-4.6-fast",
+          "name": "Claude Opus 4.6 Fast",
+          "description": "Fast-mode variant of [Opus 4.6](/anthropic/claude-opus-4.6) - identical capabilities with higher out",
+          "max_tokens": 1000000,
+          "pricing": "input: $30.0000/M, output: $150.0000/M"
+        },
+        {
+          "id": "claude-opus-4.5",
+          "name": "Claude Opus 4.5",
+          "description": "Claude Opus 4.5 is Anthropic’s frontier reasoning model optimized for complex software engineering, ",
+          "max_tokens": 200000,
+          "pricing": "input: $5.0000/M, output: $25.0000/M"
+        },
+        {
+          "id": "claude-opus-4.1",
+          "name": "Claude Opus 4.1",
+          "description": "Claude Opus 4.1 is an updated version of Anthropic’s flagship model, offering improved performance i",
+          "max_tokens": 200000,
+          "pricing": "input: $15.0000/M, output: $75.0000/M"
+        },
+        {
+          "id": "claude-opus-4",
+          "name": "Claude Opus 4",
+          "description": "Claude Opus 4 is benchmarked as the world’s best coding model, at time of release, bringing sustaine",
+          "max_tokens": 200000,
+          "pricing": "input: $15.0000/M, output: $75.0000/M"
+        },
+        {
+          "id": "claude-sonnet-4.6",
+          "name": "Claude Sonnet 4.6",
+          "description": "Sonnet 4.6 is Anthropic's most capable Sonnet-class model yet, with frontier performance across codi",
+          "max_tokens": 1000000,
+          "pricing": "input: $3.0000/M, output: $15.0000/M"
+        },
+        {
+          "id": "claude-sonnet-4.5",
+          "name": "Claude Sonnet 4.5",
+          "description": "Claude Sonnet 4.5 is Anthropic’s most advanced Sonnet model to date, optimized for real-world agents",
+          "max_tokens": 1000000,
+          "pricing": "input: $3.0000/M, output: $15.0000/M"
+        },
+        {
+          "id": "claude-sonnet-4",
+          "name": "Claude Sonnet 4",
+          "description": "Claude Sonnet 4 significantly enhances the capabilities of its predecessor, Sonnet 3.7, excelling in",
+          "max_tokens": 1000000,
+          "pricing": "input: $3.0000/M, output: $15.0000/M"
+        },
+        {
+          "id": "claude-haiku-4.5",
+          "name": "Claude Haiku 4.5",
+          "description": "Claude Haiku 4.5 is Anthropic’s fastest and most efficient model, delivering near-frontier intellige",
+          "max_tokens": 200000,
+          "pricing": "input: $1.0000/M, output: $5.0000/M"
+        },
+        {
+          "id": "claude-opus-latest",
+          "name": "Claude Opus (Latest)",
+          "description": "This model always redirects to the latest model in the Claude Opus family.",
+          "max_tokens": 1000000,
+          "pricing": "input: $5.0000/M, output: $25.0000/M"
+        },
+        {
+          "id": "claude-sonnet-latest",
+          "name": "Claude Sonnet (Latest)",
+          "description": "This model always redirects to the latest model in the Anthropic Claude Sonnet family.",
+          "max_tokens": 1000000,
+          "pricing": "input: $3.0000/M, output: $15.0000/M"
+        },
+        {
+          "id": "claude-haiku-latest",
+          "name": "Claude Haiku (Latest)",
+          "description": "This model always redirects to the latest model in the Anthropic Claude Haiku family.",
+          "max_tokens": 200000,
+          "pricing": "input: $1.0000/M, output: $5.0000/M"
+        },
+        {
+          "id": "claude-3.7-sonnet",
+          "name": "Claude 3.7 Sonnet",
+          "description": "Claude 3.7 Sonnet is an advanced large language model with improved reasoning, coding, and problem-s",
+          "max_tokens": 200000,
+          "pricing": "input: $3.0000/M, output: $15.0000/M"
+        },
+        {
+          "id": "claude-3.5-haiku",
+          "name": "Claude 3.5 Haiku",
+          "description": "Claude 3.5 Haiku features offers enhanced capabilities in speed, coding accuracy, and tool use. Engi",
+          "max_tokens": 200000,
+          "pricing": "input: $0.8000/M, output: $4.0000/M"
+        },
+        {
+          "id": "claude-3-haiku",
+          "name": "Claude 3 Haiku",
+          "description": "Claude 3 Haiku is Anthropic's fastest and most compact model for\nnear-instant responsiveness. Quick ",
+          "max_tokens": 200000,
+          "pricing": "input: $0.2500/M, output: $1.2500/M"
+        }
+      ]
+    },
+    "deepseek": {
+      "name": "DeepSeek",
+      "short_name": "DeepSeek",
+      "icon": "D",
+      "website": "https://deepseek.com",
+      "api_type": "openai",
+      "docs_url": "https://api-docs.deepseek.com/",
+      "default_base_url": "https://api.deepseek.com",
+      "api_key_required": true,
+      "category": "cloud",
+      "models": [
+        {
+          "id": "deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash",
+          "description": "Fast model with 1M context, supports thinking/non-thinking modes. Default thinking",
+          "max_tokens": 384000,
+          "pricing": "input: $0.14/M (cache miss), output: $0.28/M"
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "name": "DeepSeek V4 Pro",
+          "description": "Flagship model with 1M context. 75% discount until 2026/05/31",
+          "max_tokens": 384000,
+          "pricing": "input: $0.435/M (75% off), output: $0.87/M (75% off)"
+        },
+        {
+          "id": "deepseek-chat",
+          "name": "DeepSeek Chat (legacy, deprecated 2026/07/24)",
+          "description": "Legacy model, maps to deepseek-v4-flash non-thinking mode",
+          "max_tokens": 384000,
+          "pricing": "input: $0.14/M, output: $0.28/M"
+        },
+        {
+          "id": "deepseek-reasoner",
+          "name": "DeepSeek Reasoner (legacy, deprecated 2026/07/24)",
+          "description": "Legacy model, maps to deepseek-v4-flash thinking mode",
+          "max_tokens": 384000,
+          "pricing": "input: $0.14/M, output: $0.28/M"
+        }
+      ]
+    },
+    "gemini": {
+      "name": "Google Gemini",
+      "short_name": "Gemini",
+      "icon": "G",
+      "website": "https://deepmind.google/gemini",
+      "api_type": "gemini",
+      "docs_url": "https://ai.google.dev/gemini-api/docs",
+      "default_base_url": "https://generativelanguage.googleapis.com/v1beta",
+      "api_key_required": true,
+      "category": "cloud",
+      "models": [
+        {
+          "id": "gemini-2.5-pro",
+          "name": "Gemini 2.5 Pro",
+          "description": "Gemini 2.5 Pro is Google’s state-of-the-art AI model designed for advanced reasoning, coding, mathem",
+          "max_tokens": 1048576,
+          "pricing": "input: $1.2500/M, output: $10.0000/M"
+        },
+        {
+          "id": "gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash",
+          "description": "Gemini 2.5 Flash is Google's state-of-the-art workhorse model, specifically designed for advanced re",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.3000/M, output: $2.5000/M"
+        },
+        {
+          "id": "gemini-2.5-flash-lite",
+          "name": "Gemini 2.5 Flash Lite",
+          "description": "Gemini 2.5 Flash-Lite is a lightweight reasoning model in the Gemini 2.5 family, optimized for ultra",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.1000/M, output: $0.4000/M"
+        },
+        {
+          "id": "gemini-2.0-flash-001",
+          "name": "Gemini 2.0 Flash",
+          "description": "Gemini Flash 2.0 offers a significantly faster time to first token (TTFT) compared to [Gemini Flash ",
+          "max_tokens": 1000000,
+          "pricing": "input: $0.1000/M, output: $0.4000/M"
+        },
+        {
+          "id": "gemini-2.0-flash-lite-001",
+          "name": "Gemini 2.0 Flash Lite",
+          "description": "Gemini 2.0 Flash Lite offers a significantly faster time to first token (TTFT) compared to [Gemini F",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.0750/M, output: $0.3000/M"
+        }
+      ]
+    },
+    "groq": {
+      "name": "Groq",
+      "short_name": "Groq",
+      "icon": "Gq",
+      "website": "https://groq.com",
+      "api_type": "openai",
+      "docs_url": "https://console.groq.com/docs",
+      "default_base_url": "https://api.groq.com/openai/v1",
+      "api_key_required": true,
+      "category": "cloud",
+      "models": [
+        {
+          "id": "llama-4-maverick",
+          "name": "Llama 4 Maverick 17B",
+          "description": "Meta Llama 4 high-capability MoE via Groq",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.15/M, output: $0.60/M"
+        },
+        {
+          "id": "llama-4-scout",
+          "name": "Llama 4 Scout 17B",
+          "description": "Meta Llama 4 efficient MoE via Groq",
+          "max_tokens": 327680,
+          "pricing": "input: $0.08/M, output: $0.30/M"
+        },
+        {
+          "id": "llama-3.3-70b-versatile",
+          "name": "Llama 3.3 70B",
+          "description": "Meta Llama 3.3 70B via Groq",
+          "max_tokens": 32768,
+          "pricing": "input: $0.59/M, output: $0.79/M"
+        },
+        {
+          "id": "llama-3.1-8b-instant",
+          "name": "Llama 3.1 8B",
+          "description": "Fast 8B model via Groq",
+          "max_tokens": 131072,
+          "pricing": "input: $0.05/M, output: $0.08/M"
+        },
+        {
+          "id": "deepseek-r1-distill-llama-70b",
+          "name": "DeepSeek R1 70B",
+          "description": "Distilled reasoning via Groq",
+          "max_tokens": 131072,
+          "pricing": "input: $0.75/M, output: $0.99/M"
+        },
+        {
+          "id": "qwen-2.5-32b",
+          "name": "Qwen 2.5 32B",
+          "description": "Alibaba Qwen via Groq",
+          "max_tokens": 32768,
+          "pricing": "input: $0.19/M, output: $0.33/M"
+        }
+      ]
+    },
+    "together": {
+      "name": "Together AI",
+      "short_name": "Together",
+      "icon": "T",
+      "website": "https://together.ai",
+      "api_type": "openai",
+      "docs_url": "https://docs.together.ai/docs/chat-completions",
+      "default_base_url": "https://api.together.xyz/v1",
+      "api_key_required": true,
+      "category": "cloud",
+      "models": [
+        {
+          "id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+          "name": "Llama 3.3 70B",
+          "description": "Meta Llama 3.3 via Together",
+          "max_tokens": 131072,
+          "pricing": "input: $0.88/M, output: $0.88/M"
+        },
+        {
+          "id": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+          "name": "Llama 4 Maverick 17B",
+          "description": "Meta Llama 4 via Together",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.20/M, output: $0.80/M"
+        },
+        {
+          "id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+          "name": "Llama 4 Scout 17B",
+          "description": "Meta Llama 4 efficient via Together",
+          "max_tokens": 327680,
+          "pricing": "input: $0.10/M, output: $0.40/M"
+        },
+        {
+          "id": "mistralai/Mixtral-8x22B-Instruct-v0.1",
+          "name": "Mixtral 8x22B",
+          "description": "Mistral MoE via Together",
+          "max_tokens": 65536,
+          "pricing": "input: $1.20/M, output: $1.20/M"
+        },
+        {
+          "id": "deepseek-ai/deepseek-v3",
+          "name": "DeepSeek V3",
+          "description": "DeepSeek via Together",
+          "max_tokens": 65536,
+          "pricing": "input: $1.00/M, output: $1.00/M"
+        },
+        {
+          "id": "Qwen/Qwen3-235B-A22B-Instruct",
+          "name": "Qwen3 235B A22B",
+          "description": "Qwen via Together",
+          "max_tokens": 262144,
+          "pricing": "input: $0.50/M, output: $1.80/M"
+        },
+        {
+          "id": "google/gemma-3-27b-it",
+          "name": "Gemma 3 27B",
+          "description": "Google Gemma 3 via Together",
+          "max_tokens": 131072,
+          "pricing": "input: $0.08/M, output: $0.16/M"
+        }
+      ]
+    },
+    "openrouter": {
+      "name": "OpenRouter",
+      "short_name": "OpenRouter",
+      "icon": "OR",
+      "website": "https://openrouter.ai",
+      "api_type": "openai",
+      "docs_url": "https://openrouter.ai/docs",
+      "default_base_url": "https://openrouter.ai/api/v1",
+      "api_key_required": true,
+      "category": "aggregator",
+      "models": [
+        {
+          "id": "openai/gpt-5.5-pro",
+          "name": "GPT-5.5 Pro",
+          "description": "OpenAI via OpenRouter",
+          "max_tokens": 1050000,
+          "pricing": "input: $30.00/M, output: $180.00/M"
+        },
+        {
+          "id": "openai/gpt-5.5",
+          "name": "GPT-5.5",
+          "description": "OpenAI via OpenRouter",
+          "max_tokens": 1050000,
+          "pricing": "input: $5.00/M, output: $30.00/M"
+        },
+        {
+          "id": "openai/gpt-5.4-pro",
+          "name": "GPT-5.4 Pro",
+          "description": "OpenAI via OpenRouter",
+          "max_tokens": 1050000,
+          "pricing": "input: $30.00/M, output: $180.00/M"
+        },
+        {
+          "id": "openai/gpt-5.4",
+          "name": "GPT-5.4",
+          "description": "OpenAI via OpenRouter",
+          "max_tokens": 1050000,
+          "pricing": "input: $2.50/M, output: $15.00/M"
+        },
+        {
+          "id": "anthropic/claude-opus-4.7",
+          "name": "Claude Opus 4.7",
+          "description": "Anthropic via OpenRouter",
+          "max_tokens": 1000000,
+          "pricing": "input: $5.00/M, output: $25.00/M"
+        },
+        {
+          "id": "anthropic/claude-sonnet-4.6",
+          "name": "Claude Sonnet 4.6",
+          "description": "Anthropic via OpenRouter",
+          "max_tokens": 1000000,
+          "pricing": "input: $3.00/M, output: $15.00/M"
+        },
+        {
+          "id": "deepseek/deepseek-v4-pro",
+          "name": "DeepSeek V4 Pro",
+          "description": "DeepSeek via OpenRouter",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.44/M, output: $0.87/M"
+        },
+        {
+          "id": "deepseek/deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash",
+          "description": "DeepSeek via OpenRouter",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.14/M, output: $0.28/M"
+        },
+        {
+          "id": "google/gemini-2.5-pro",
+          "name": "Gemini 2.5 Pro",
+          "description": "Google via OpenRouter",
+          "max_tokens": 1048576,
+          "pricing": "input: $1.25/M, output: $10.00/M"
+        },
+        {
+          "id": "google/gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash",
+          "description": "Google via OpenRouter",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.30/M, output: $2.50/M"
+        },
+        {
+          "id": "qwen/qwen3.6-max-preview",
+          "name": "Qwen 3.6 Max Preview",
+          "description": "Alibaba Qwen via OpenRouter",
+          "max_tokens": 262144,
+          "pricing": "input: $1.04/M, output: $6.24/M"
+        },
+        {
+          "id": "qwen/qwen3.6-flash",
+          "name": "Qwen 3.6 Flash",
+          "description": "Alibaba Qwen via OpenRouter",
+          "max_tokens": 1000000,
+          "pricing": "input: $0.25/M, output: $1.50/M"
+        },
+        {
+          "id": "x-ai/grok-4.20",
+          "name": "Grok 4.20",
+          "description": "xAI via OpenRouter",
+          "max_tokens": 2000000,
+          "pricing": "input: $2.00/M, output: $6.00/M"
+        },
+        {
+          "id": "meta-llama/llama-4-maverick",
+          "name": "Llama 4 Maverick",
+          "description": "Meta via OpenRouter",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.15/M, output: $0.60/M"
+        },
+        {
+          "id": "mistralai/mistral-large-2512",
+          "name": "Mistral Large 3",
+          "description": "Mistral via OpenRouter",
+          "max_tokens": 262144,
+          "pricing": "input: $0.50/M, output: $1.50/M"
+        }
+      ]
+    },
+    "fireworks": {
+      "name": "Fireworks AI",
+      "short_name": "Fireworks",
+      "icon": "F",
+      "website": "https://fireworks.ai",
+      "api_type": "openai",
+      "docs_url": "https://docs.fireworks.ai/reference/chatcompletion",
+      "default_base_url": "https://api.fireworks.ai/inference/v1",
+      "api_key_required": true,
+      "category": "cloud",
+      "models": [
+        {
+          "id": "accounts/fireworks/models/llama-v3p3-70b-instruct",
+          "name": "Llama 3.3 70B",
+          "description": "Meta Llama via Fireworks",
+          "max_tokens": 32768,
+          "pricing": "input: $0.70/M, output: $0.70/M"
+        },
+        {
+          "id": "accounts/fireworks/models/llama-v4-maverick",
+          "name": "Llama 4 Maverick 17B",
+          "description": "Meta Llama 4 via Fireworks",
+          "max_tokens": 1048576,
+          "pricing": "input: $0.15/M, output: $0.60/M"
+        },
+        {
+          "id": "accounts/fireworks/models/deepseek-v3",
+          "name": "DeepSeek V3",
+          "description": "DeepSeek via Fireworks",
+          "max_tokens": 65536,
+          "pricing": "input: $0.60/M, output: $0.60/M"
+        },
+        {
+          "id": "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
+          "name": "Qwen 2.5 Coder 32B",
+          "description": "Code-specialized Qwen via Fireworks",
+          "max_tokens": 32768,
+          "pricing": "input: $0.50/M, output: $0.50/M"
+        },
+        {
+          "id": "accounts/fireworks/models/mixtral-8x22b-instruct",
+          "name": "Mixtral 8x22B",
+          "description": "Mistral MoE via Fireworks",
+          "max_tokens": 65536,
+          "pricing": "input: $0.90/M, output: $0.90/M"
+        }
+      ]
+    },
+    "local": {
+      "name": "Local (Ollama / vLLM / llama.cpp)",
+      "short_name": "Local",
+      "icon": "L",
+      "website": "",
+      "api_type": "openai",
+      "docs_url": "",
+      "default_base_url": "http://localhost:11434/v1",
+      "api_key_required": false,
+      "category": "local",
+      "models": [
+        {
+          "id": "llama3",
+          "name": "Llama 3 (8B)",
+          "description": "Meta Llama 3 8B locally",
+          "max_tokens": 8192,
+          "pricing": "free (local)"
+        },
+        {
+          "id": "llama3.1",
+          "name": "Llama 3.1 (8B)",
+          "description": "Meta Llama 3.1 8B locally",
+          "max_tokens": 8192,
+          "pricing": "free (local)"
+        },
+        {
+          "id": "mistral",
+          "name": "Mistral (7B)",
+          "description": "Mistral 7B locally",
+          "max_tokens": 8192,
+          "pricing": "free (local)"
+        },
+        {
+          "id": "mixtral",
+          "name": "Mixtral (8x7B)",
+          "description": "Mistral MoE locally",
+          "max_tokens": 32768,
+          "pricing": "free (local)"
+        },
+        {
+          "id": "qwen2.5",
+          "name": "Qwen 2.5 (7B)",
+          "description": "Alibaba Qwen 2.5 locally",
+          "max_tokens": 32768,
+          "pricing": "free (local)"
+        },
+        {
+          "id": "deepseek-coder",
+          "name": "DeepSeek Coder (V2)",
+          "description": "Code-specialized model locally",
+          "max_tokens": 8192,
+          "pricing": "free (local)"
+        },
+        {
+          "id": "phi3",
+          "name": "Phi-3 (Microsoft)",
+          "description": "Microsoft Phi-3 locally",
+          "max_tokens": 4096,
+          "pricing": "free (local)"
+        },
+        {
+          "id": "qwen2.5-coder",
+          "name": "Qwen 2.5 Coder",
+          "description": "Code-specialized Qwen locally",
+          "max_tokens": 32768,
+          "pricing": "free (local)"
+        },
+        {
+          "id": "gemma3",
+          "name": "Gemma 3 (Google)",
+          "description": "Google Gemma 3 locally",
+          "max_tokens": 8192,
+          "pricing": "free (local)"
+        }
+      ]
+    }
+  },
+  "api_types": {
+    "openai": {
+      "name": "OpenAI-compatible",
+      "chat_endpoint": "/chat/completions",
+      "headers_provider": "Authorization: Bearer {api_key}",
+      "body_format": "{\"model\":\"{model}\",\"messages\":[...]}"
+    },
+    "anthropic": {
+      "name": "Anthropic Messages API",
+      "chat_endpoint": "/messages",
+      "headers_provider": "x-api-key: {api_key}",
+      "body_format": "{\"model\":\"{model}\",\"messages\":[...]}"
+    },
+    "gemini": {
+      "name": "Google Gemini API",
+      "chat_endpoint": "/models/{model}:generateContent?key={api_key}",
+      "headers_provider": "none (key in URL)",
+      "body_format": "{\"contents\":[...],\"generationConfig\":{...}}"
+    }
+  },
+  "categories": {
+    "cloud": {
+      "name": "Cloud API Providers",
+      "description": "Direct API endpoints from model providers"
+    },
+    "aggregator": {
+      "name": "API Aggregators",
+      "description": "Unified access to multiple providers through one endpoint"
+    },
+    "local": {
+      "name": "Local / Self-Hosted",
+      "description": "Run models on your own hardware"
+    }
+  },
+  "update_sources": [
+    {
+      "name": "OpenAI Models",
+      "url": "https://api.openai.com/v1/models",
+      "parser": "openai",
+      "enabled": false
+    },
+    {
+      "name": "Anthropic Models",
+      "url": "https://docs.anthropic.com/en/docs/about-claude/models",
+      "parser": "anthropic_web",
+      "enabled": false
+    },
+    {
+      "name": "Groq Models",
+      "url": "https://api.groq.com/openai/v1/models",
+      "parser": "openai",
+      "enabled": false
+    },
+    {
+      "name": "Together AI Models",
+      "url": "https://api.together.xyz/v1/models",
+      "parser": "together",
+      "enabled": false
+    },
+    {
+      "name": "OpenRouter Models",
+      "url": "https://openrouter.ai/api/v1/models",
+      "parser": "openrouter",
+      "enabled": false
+    },
+    {
+      "name": "Fireworks AI Models",
+      "url": "https://api.fireworks.ai/inference/v1/models",
+      "parser": "openai",
+      "enabled": false
+    }
+  ]
+}
