@@ -1,0 +1,72 @@
+name: 🐛 Bug Report
+description: Report a reproducible bug to help us improve CLMA
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, GCC/Clang version
+      placeholder: "Ubuntu 22.04, Python 3.11, GCC 11.4"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: CLMA Version / Commit
+      description: The version tag or commit hash you're running
+      placeholder: "v1.0.0 or git rev-parse HEAD"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: What happened? What did you expect to happen?
+      placeholder: "When I submit a query, the Web UI shows a blank screen instead of the flowchart..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal, complete steps to reproduce the behavior
+      placeholder: |
+        1. Clone repo and build
+        2. Configure API key
+        3. Launch Web UI
+        4. Submit query "implement quicksort"
+        5. Observe blank page
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs / Screenshots
+      description: Copy and paste terminal output, browser console errors, or attach screenshots
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Execution Mode
+      options:
+        - Fast Path
+        - Single Loop
+        - DAG
+        - Multi-Loop
+        - AAN (Adaptive Agent Network)
+        - Not sure
+    validations:
+      required: false

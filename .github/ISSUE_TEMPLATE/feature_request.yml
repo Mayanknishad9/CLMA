@@ -1,0 +1,49 @@
+name: ✨ Feature Request
+description: Suggest an idea or improvement for CLMA
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea? We'd love to hear it! Please describe what you need and why.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem or pain point does this feature address?
+      placeholder: "Currently CLMA only supports OpenAI-style API formats. I'd like to use a local vLLM endpoint with a different schema..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the feature you'd like to see
+      placeholder: "Add a custom API adapter config that allows users to define request/response templates..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any workarounds or alternative approaches you've considered
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which part of CLMA does this affect?
+      options:
+        - Core Engine (C++)
+        - Python Interface
+        - Web UI
+        - Configuration / Deployment
+        - Documentation
+        - Other
+    validations:
+      required: true

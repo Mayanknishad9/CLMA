@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLMA — Closed-Loop Multi-Agent Reasoning Framework</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🔁</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #1c2128;
+      --bg-hover: #252b33;
+      --border: #30363d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --accent-purple: #bc8cff;
+      --accent-red: #f85149;
+      --gradient-primary: linear-gradient(135deg, #58a6ff, #bc8cff);
+      --gradient-accent: linear-gradient(135deg, #3fb950, #58a6ff);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── Hero ─── */
+    .hero {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 80px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-blue), var(--accent-purple), transparent);
+    }
+    .hero-bg {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(88,166,255,0.03) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 50%, rgba(188,140,255,0.03) 0%, transparent 50%);
+      z-index: 0;
+    }
+    .hero-content { position: relative; z-index: 1; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.2);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent-blue);
+      margin-bottom: 24px;
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+    .hero h1 .gradient { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .hero p.tagline {
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      color: var(--text-secondary);
+      max-width: 680px;
+      margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: #fff;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(88,166,255,0.25); }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--bg-hover); border-color: var(--text-muted); transform: translateY(-2px); }
+
+    .hero-stats {
+      display: flex;
+      gap: 48px;
+      margin-top: 48px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .number {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .hero-stat .label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ─── Sections ─── */
+    section { padding: 80px 0; }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .section-subtitle {
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 48px;
+    }
+
+    /* ─── Feature Cards ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      transition: all 0.2s;
+    }
+    .feature-card:hover { border-color: var(--text-muted); transform: translateY(-4px); }
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    .feature-card h3 { font-size: 1.15rem; margin-bottom: 8px; }
+    .feature-card p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; }
+
+    /* ─── Architecture Diagram ─── */
+    .arch-section { background: var(--bg-secondary); }
+    .arch-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 48px 32px;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .arch-layer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px;
+      border-radius: 8px;
+      position: relative;
+    }
+    .arch-layer-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+    .arch-layer.web-layer { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.15); }
+    .arch-layer.python-layer { background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.15); }
+    .arch-layer.cpp-layer { background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.15); }
+
+    .arch-arrow { color: var(--text-muted); font-size: 1.2rem; padding: 4px 0; }
+    .arch-modules {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .arch-module {
+      padding: 6px 14px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ─── Modes ─── */
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .mode-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: all 0.2s;
+    }
+    .mode-card:hover { border-color: var(--text-muted); transform: translateY(-4px); }
+    .mode-card .mode-icon { font-size: 2rem; margin-bottom: 12px; }
+    .mode-card h3 { font-size: 1.05rem; margin-bottom: 8px; }
+    .mode-card p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+    .mode-card .mode-tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+    .tag-fast { background: rgba(63,185,80,0.15); color: var(--accent-green); }
+    .tag-single { background: rgba(88,166,255,0.15); color: var(--accent-blue); }
+    .tag-dag { background: rgba(210,153,34,0.15); color: var(--accent-orange); }
+    .tag-multi { background: rgba(188,140,255,0.15); color: var(--accent-purple); }
+    .tag-aan { background: rgba(248,81,73,0.15); color: var(--accent-red); }
+
+    /* ─── UI Screenshots ─── */
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+    }
+    .screenshot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .screenshot-card:hover { transform: translateY(-4px); border-color: var(--text-muted); }
+    .screenshot-card .img-placeholder {
+      width: 100%;
+      aspect-ratio: 16/10;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .screenshot-card .img-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .screenshot-card .caption {
+      padding: 16px 20px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .screenshot-card .caption strong { color: var(--text-primary); }
+
+    /* ─── Benchmark Table ─── */
+    .benchmark-wrapper {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .benchmark-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .benchmark-table th {
+      background: var(--bg-card);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    .benchmark-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .benchmark-table tr:hover td { background: var(--bg-hover); }
+    .benchmark-table .highlight { color: var(--accent-green); font-weight: 600; }
+    .benchmark-table .best { background: rgba(63,185,80,0.06); }
+
+    /* ─── Quick Start ─── */
+    .quickstart-steps {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .qs-step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      align-items: flex-start;
+    }
+    .qs-step .step-num {
+      width: 32px; height: 32px;
+      min-width: 32px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .qs-step .step-content { flex: 1; }
+    .qs-step .step-content h4 { font-size: 1rem; margin-bottom: 4px; }
+    .qs-step .step-content p { color: var(--text-secondary); font-size: 0.9rem; }
+
+    .code-block {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      margin-top: 8px;
+      color: var(--text-primary);
+    }
+    .code-block .comment { color: var(--text-muted); }
+    .code-block .keyword { color: var(--accent-purple); }
+    .code-block .string { color: var(--accent-green); }
+
+    /* ─── CTA ─── */
+    .cta-section {
+      background: var(--bg-secondary);
+      text-align: center;
+      padding: 80px 24px;
+    }
+    .cta-section h2 { font-size: 2rem; margin-bottom: 12px; }
+    .cta-section p { color: var(--text-secondary); max-width: 500px; margin: 0 auto 32px; }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--accent-blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .hero { min-height: 70vh; padding: 60px 20px; }
+      .hero-stats { gap: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .modes-grid { grid-template-columns: 1fr; }
+      .screenshots-grid { grid-template-columns: 1fr; }
+      section { padding: 60px 0; }
+    }
+
+    /* ─── Smooth scroll ─── */
+    html { scroll-behavior: smooth; }
+
+    /* ─── Animations ─── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── Theme toggle ─── */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover { background: var(--bg-hover); }
+  </style>
+</head>
+<body>
+
+<!-- Theme Toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span> v1.1 — Adaptive Agent Network</div>
+    <h1><span class="gradient">CLMA</span></h1>
+    <p class="tagline">
+      A self-verifying, multi-agent code generation framework with a C++ core engine,
+      real-time Web UI, and an adaptive execution topology that routes your tasks through
+      the optimal agent pipeline automatically.
+    </p>
+    <div class="hero-actions">
+      <a href="https://github.com/kriely/CLMA" class="btn btn-primary">⭐ GitHub</a>
+      <a href="#quickstart" class="btn btn-secondary">Quick Start →</a>
+      <a href="#benchmarks" class="btn btn-secondary">Benchmarks</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="number">5</div>
+        <div class="label">Agent Roles</div>
+      </div>
+      <div class="hero-stat">
+        <div class="number">4</div>
+        <div class="label">Execution Modes</div>
+      </div>
+      <div class="hero-stat">
+        <div class="number">108+</div>
+        <div class="label">Test Cases</div>
+      </div>
+      <div class="hero-stat">
+        <div class="number">&lt;5s</div>
+        <div class="label">Avg. Response</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="fade-in">
+  <div class="container">
+    <h2 class="section-title">Why CLMA?</h2>
+    <p class="section-subtitle">LLM-generated code should be verified, not trusted.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(88,166,255,0.12);">🔄</div>
+        <h3>Closed-Loop Verification</h3>
+        <p>Unlike linear pipelines, CLMA iterates automatically — generating, verifying, and refining code until quality thresholds are met. No human-in-the-middle needed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(63,185,80,0.12);">🧠</div>
+        <h3>Adaptive Agent Network</h3>
+        <p>AAN selects the optimal execution topology at runtime — from a direct solver for simple tasks to a recursive tree decomposition for complex multi-module requirements.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(188,140,255,0.12);">⚡</div>
+        <h3>C++ Core Engine</h3>
+        <p>Built on a high-performance C++17 foundation with pybind11 bindings. Orchestrator, DAG Processor, and Rule Engine run at native speed for minimal overhead.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(210,153,34,0.12);">📊</div>
+        <h3>Real-Time Web UI</h3>
+        <p>Dark-themed interface with live SVG flow graphs, score gauges, execution timelines, and SSE-driven streaming displays every agent action as it happens.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(248,81,73,0.12);">🔌</div>
+        <h3>5 LLM Providers</h3>
+        <p>OpenAI, Anthropic, DeepSeek, Gemini, and local models — all swappable through a unified adapter. No vendor lock-in. Works fully offline with local models.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(63,185,80,0.12);">📐</div>
+        <h3>Multi-Architecture</h3>
+        <p>Fast Path, Single Loop, DAG, Nested Multi-Loop, and Adaptive Agent Network — auto-selected by query complexity. No manual pipeline configuration required.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section class="arch-section fade-in">
+  <div class="container">
+    <h2 class="section-title">Architecture</h2>
+    <p class="section-subtitle">Three layers from UI to native execution.</p>
+    <div class="arch-diagram">
+      <div class="arch-layer web-layer">
+        <div class="arch-layer-label">🌐 Web UI — Flask + SSE</div>
+        <div class="arch-modules">
+          <span class="arch-module">SVG Flow Graph</span>
+          <span class="arch-module">Score Dashboard</span>
+          <span class="arch-module">Session History</span>
+          <span class="arch-module">LLM Catalog</span>
+        </div>
+      </div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer python-layer">
+        <div class="arch-layer-label">🐍 Python Interface — pybind11</div>
+        <div class="arch-modules">
+          <span class="arch-module">Framework</span>
+          <span class="arch-module">API Adapters</span>
+          <span class="arch-module">Tool Executor</span>
+          <span class="arch-module">Scoring</span>
+        </div>
+      </div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer cpp-layer">
+        <div class="arch-layer-label">⚡ C++17 Core Engine</div>
+        <div class="arch-modules">
+          <span class="arch-module">Orchestrator</span>
+          <span class="arch-module">DAG Processor</span>
+          <span class="arch-module">Rule Engine</span>
+          <span class="arch-module">Token Monitor</span>
+          <span class="arch-module">Plugin Manager</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Execution Modes -->
+<section class="fade-in">
+  <div class="container">
+    <h2 class="section-title">Execution Modes</h2>
+    <p class="section-subtitle">From 2-second Fast Path to full adaptive topology.</p>
+    <div class="modes-grid">
+      <div class="mode-card">
+        <div class="mode-icon">🚀</div>
+        <h3>Fast Path</h3>
+        <p>Bypasses the full pipeline for trivial tasks. Direct solver → auto-execute → score. Sub-2s response.</p>
+        <span class="mode-tag tag-fast">~2s</span>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">🔄</div>
+        <h3>Single Loop</h3>
+        <p>Refiner → Reasoner → Solver → Verifier → Evaluator with iterative score feedback. Best quality/time trade-off.</p>
+        <span class="mode-tag tag-single">~5s</span>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">📐</div>
+        <h3>DAG Mode</h3>
+        <p>C++ DAG Processor decomposes multi-component tasks into independent sub-tasks executed in parallel.</p>
+        <span class="mode-tag tag-dag">~10-25s</span>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">🔁</div>
+        <h3>Nested Multi-Loop</h3>
+        <p>Outer strategy loop + inner execution loop. Solves architectural tasks that single-pass pipelines cannot.</p>
+        <span class="mode-tag tag-multi">~40s</span>
+      </div>
+      <div class="mode-card" style="border-color:var(--accent-red);">
+        <div class="mode-icon">🌲</div>
+        <h3>Adaptive Agent Network</h3>
+        <p>Self-organizing topology: Direct, Chain, Parallel, or Tree — auto-selected by query complexity. Recursive decomposition.</p>
+        <span class="mode-tag tag-aan">NEW</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- UI Screenshots -->
+<section class="arch-section fade-in">
+  <div class="container">
+    <h2 class="section-title">Interface</h2>
+    <p class="section-subtitle">Real-time agent visualization, scoring, and session management.</p>
+    <div class="screenshots-grid">
+      <div class="screenshot-card">
+        <div class="img-placeholder">
+          <img src="images/single-loop-ui.png" alt="Single Loop UI" onerror="this.parentElement.innerHTML='<span>📸 Single Loop Mode — Flow Graph &amp; Score Dashboard</span>'">
+        </div>
+        <div class="caption">
+          <strong>Single Loop Mode</strong> — Live SVG flow graph, score gauge, execution timeline, and session history sidebar.
+        </div>
+      </div>
+      <div class="screenshot-card">
+        <div class="img-placeholder">
+          <img src="images/multi-loop-ui.png" alt="Multi-Loop UI" onerror="this.parentElement.innerHTML='<span>📸 Nested Multi-Loop — Strategy + Execution Layers</span>'">
+        </div>
+        <div class="caption">
+          <strong>Nested Multi-Loop</strong> — Outer strategy loop visualized above inner execution loop with hierarchical scoring.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Benchmarks -->
+<section class="fade-in" id="benchmarks">
+  <div class="container">
+    <h2 class="section-title">Benchmarks</h2>
+    <p class="section-subtitle">Measured against DeepSeek API (single LLM call ~5-8s).</p>
+    <div class="benchmark-wrapper">
+      <table class="benchmark-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Fast Path</th>
+            <th>Single Loop</th>
+            <th>DAG</th>
+            <th>Nested Loop</th>
+            <th>AAN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hello World</td>
+            <td class="best"><span class="highlight">2.3s / 0.97</span></td>
+            <td>4.7s / 0.99</td>
+            <td>5.3s / 0.99</td>
+            <td>—</td>
+            <td><span class="highlight">2.3s / 0.97</span></td>
+          </tr>
+          <tr>
+            <td>Fibonacci</td>
+            <td>—</td>
+            <td class="best"><span class="highlight">4.7s / 0.99</span></td>
+            <td>5.3s / 0.99</td>
+            <td>—</td>
+            <td><span class="highlight">4.7s / 0.99</span></td>
+          </tr>
+          <tr>
+            <td>Quicksort</td>
+            <td>—</td>
+            <td class="best"><span class="highlight">5.1s / 0.98</span></td>
+            <td>—</td>
+            <td>—</td>
+            <td><span class="highlight">5.1s / 0.98</span></td>
+          </tr>
+          <tr>
+            <td>Batch file rename</td>
+            <td>—</td>
+            <td class="best"><span class="highlight">8.1s / 0.98</span></td>
+            <td>12.0s / 0.97</td>
+            <td>—</td>
+            <td><span class="highlight">8.1s / 0.98</span></td>
+          </tr>
+          <tr>
+            <td>Microservice architecture</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="best">39s / <span class="highlight">1.0</span> ✅</td>
+            <td><span class="highlight">28s / 0.99</span></td>
+          </tr>
+          <tr>
+            <td>Multi-component project</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="best"><span class="highlight">~25s / 0.97</span></td>
+            <td>—</td>
+            <td><span class="highlight">22s / 0.97</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section class="arch-section fade-in" id="quickstart">
+  <div class="container">
+    <h2 class="section-title">Get Started in 30 Seconds</h2>
+    <p class="section-subtitle">Clone, build, and launch — three commands.</p>
+    <div class="quickstart-steps">
+      <div class="qs-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Clone &amp; setup</h4>
+          <div class="code-block">
+            <span class="comment"># Install Python deps</span><br>
+            pip install flask flask-cors pybind11<br><br>
+            <span class="comment"># Clone the repo</span><br>
+            git clone https://github.com/kriely/CLMA.git<br>
+            cd CLMA
+          </div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Build &amp; configure</h4>
+          <div class="code-block">
+            <span class="comment"># Build C++ core engine</span><br>
+            mkdir build && cd build<br>
+            cmake .. -DCMAKE_BUILD_TYPE=Release<br>
+            make -j$(nproc)<br>
+            cd ..<br><br>
+            <span class="comment"># Edit config/api_config.json with your API key</span><br>
+            <span class="comment"># Or use the Web UI to configure</span>
+          </div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Launch &amp; submit</h4>
+          <div class="code-block">
+            ./run_webui.sh<br><br>
+            <span class="comment"># Open http://localhost:5000</span><br>
+            <span class="comment"># Type a query, press Enter — watch it work</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section fade-in">
+  <div class="container">
+    <h2>Ready to build with CLMA?</h2>
+    <p>Star the repo, try it out, and join the community. Issues, PRs, and discussions welcome.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/kriely/CLMA" class="btn btn-primary">⭐ Star on GitHub</a>
+      <a href="https://github.com/kriely/CLMA/issues" class="btn btn-secondary">Report Issues</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <p>CLMA — <a href="https://github.com/kriely/CLMA">GitHub</a> · MIT License · Built with 🔁</p>
+  </div>
+</footer>
+
+<script>
+  // Intersection Observer for scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Theme toggle
+  function toggleTheme() {
+    const root = document.documentElement;
+    const isDark = root.style.getPropertyValue('--bg-primary') !== '#0d1117';
+    // Default is dark; toggle to light
+    if (isDark || !root.computedStyleMap) {
+      // Simple approach: use data attributes
+      const body = document.body;
+      const btn = document.querySelector('.theme-toggle');
+      if (body.style.filter === 'invert(1) hue-rotate(180deg)') {
+        body.style.filter = '';
+        body.style.background = '';
+        btn.textContent = '🌙';
+      } else {
+        body.style.filter = 'invert(1) hue-rotate(180deg)';
+        body.style.background = '#000';
+        btn.textContent = '☀️';
+      }
+    }
+  }
+</script>
+
+</body>
+</html>
