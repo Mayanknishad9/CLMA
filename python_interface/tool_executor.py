@@ -202,10 +202,11 @@ class ToolExecutor:
         else:
             self._docker_available = enable_docker
         
-        # 语言编译器检测
+        # 语言编译器/运行时检测
         self._has_gpp = shutil.which("g++") is not None
         self._has_python3 = shutil.which("python3") is not None
         self._has_bash = shutil.which("bash") is not None
+        self._has_node = shutil.which("node") is not None
     
     # ── 能力查询 ──────────────────────────────────
     
@@ -215,6 +216,7 @@ class ToolExecutor:
             "python": self._has_python3,
             "shell": self._has_bash,
             "cpp": self._has_gpp,
+            "javascript": self._has_node,
             "docker": self._docker_available,
             "sandbox_dir": self._sandbox_dir,
             "timeout": self._timeout,
@@ -295,6 +297,8 @@ class ToolExecutor:
             return self.execute_cpp(code, timeout, env)
         elif lang in ("c",):
             return self.execute_c(code, timeout, env)
+        elif lang in ("javascript", "js", "node"):
+            return self.execute_javascript(code, timeout, env)
         else:
             # 文本/未知类型 — 只保存文件
             return self._save_and_report(code, language)
@@ -481,7 +485,48 @@ class ToolExecutor:
                 except OSError:
                     pass
         return result
-    
+
+    def execute_javascript(self, code: str, timeout: int = None,
+                           env: dict = None) -> ToolResult:
+        """执行 JavaScript 代码（Node.js）。
+
+        步骤：写入临时 .js → node 执行
+        """
+        start = time.monotonic()
+        result = ToolResult(tool_name="execute_javascript",
+                           input_summary=code[:100])
+        if not self._has_node:
+            result.stderr = "[ERROR] Node.js (node) not available on this system"
+            result.success = False
+            result.duration_ms = (time.monotonic() - start) * 1000
+            return result
+
+        try:
+            script_path = self._write_temp_file(code, "js")
+            completed = subprocess.run(
+                ["node", script_path],
+                capture_output=True, text=True,
+                timeout=timeout or self._timeout,
+                cwd=self._sandbox_dir,
+                env={**os.environ, **(env or {})},
+            )
+            result.stdout = completed.stdout[-self._max_output:]
+            result.stderr = completed.stderr[-self._max_output:]
+            result.exit_code = completed.returncode
+            result.success = completed.returncode == 0
+        except subprocess.TimeoutExpired:
+            result.stderr = f"[TIMEOUT] Node.js execution exceeded {timeout or self._timeout}s"
+            result.success = False
+        except FileNotFoundError:
+            result.stderr = "[ERROR] node command not found"
+            result.success = False
+        except Exception as e:
+            result.stderr = f"[ERROR] {e}"
+            result.success = False
+        finally:
+            result.duration_ms = (time.monotonic() - start) * 1000
+        return result
+
     # ── 文件操作 ──────────────────────────────────
     
     def read_file(self, path: str) -> ToolResult:

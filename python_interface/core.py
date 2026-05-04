@@ -1066,6 +1066,9 @@ rules:
             (r'```sh\s*\n(.*?)```', 'shell'),
             (r'```cpp\s*\n(.*?)```', 'cpp'),
             (r'```c\+\+\s*\n(.*?)```', 'cpp'),
+            (r'```javascript\s*\n(.*?)```', 'javascript'),
+            (r'```js\s*\n(.*?)```', 'javascript'),
+            (r'```node\s*\n(.*?)```', 'javascript'),
         ]
         # 读取上一轮的 executability 评分（如果有）
         executability = self._agent_memory.get("_last_executability", None)
