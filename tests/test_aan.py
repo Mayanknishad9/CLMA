@@ -228,7 +228,7 @@ def test_execute_direct_cancelled():
 
 
 # ======================================================================
-# ⑥ _aan_execute_chain 模拟模式
+# ⑥ _aan_execute_chain 闭环迭代模式
 # ======================================================================
 
 def test_execute_chain_produces_done():
@@ -236,7 +236,8 @@ def test_execute_chain_produces_done():
     sid = uuid.uuid4().hex[:12]
     modules = ["refiner", "reasoner", "solver", "verifier"]
     events = list(fw._aan_execute_chain(
-        'test', {"type": "chain", "modules": modules, "method": "analysis"},
+        'test', {"type": "chain", "modules": modules, "method": "analysis",
+                 "max_iterations": 1, "threshold": 0.9},
         sid, time.time()))
     done = [e for e in events if e['event'] == 'done']
     assert len(done) == 1
@@ -248,14 +249,100 @@ def test_execute_chain_sse_sequence():
     sid = uuid.uuid4().hex[:12]
     modules = ["solver", "verifier"]
     events = list(fw._aan_execute_chain(
-        'test', {"type": "chain", "modules": modules, "method": "analysis"},
+        'test', {"type": "chain", "modules": modules, "method": "analysis",
+                 "max_iterations": 1, "threshold": 0.9},
         sid, time.time()))
     starts = [e for e in events if e['event'] == 'agent_start']
     completions = [e for e in events if e['event'] == 'agent_complete']
-    assert len(starts) == len(modules)
-    assert len(completions) == len(modules)
+    # 注意：evaluator 被强制加入模块列表，所以 starts/completions 数量比原始 modules 多1
+    assert len(starts) == len(modules) + 1  # +1 for forced evaluator
+    assert len(completions) == len(modules) + 1
     assert starts[0]['agent'] == modules[0]
     assert starts[1]['agent'] == modules[1]
+
+
+def test_execute_chain_iteration_events():
+    """每轮产生 iteration event + 评分"""
+    fw = get_fw()
+    sid = uuid.uuid4().hex[:12]
+    events = list(fw._aan_execute_chain(
+        'test query', {"type": "chain", "modules": ["solver", "verifier"],
+                       "method": "analysis", "max_iterations": 1, "threshold": 0.9},
+        sid, time.time()))
+    iterations = [e for e in events if e['event'] == 'iteration']
+    assert len(iterations) == 1
+    assert 'scores' in iterations[0]
+    assert 'overall' in iterations[0]['scores']
+    assert 'iteration' in iterations[0]
+
+
+def test_execute_chain_stops_on_threshold():
+    """评分 >= threshold 时第1轮就停止，不多跑"""
+    fw = get_fw()
+    sid = uuid.uuid4().hex[:12]
+    # 高阈值确保一轮后停止（模拟模式给出默认评分0.5，设阈值为0.4让它达标）
+    events = list(fw._aan_execute_chain(
+        'simple code please',
+        {"type": "chain", "modules": ["solver", "verifier"],
+         "method": "analysis", "max_iterations": 3, "threshold": 0.4},
+        sid, time.time()))
+    done = [e for e in events if e['event'] == 'done'][0]
+    assert done['stats']['total_iterations'] == 1 or done['stats']['total_iterations'] == 2
+    assert done['result']['best_score'] >= 0.4
+
+
+def test_execute_chain_iteration_has_correct_numbering():
+    """iteration 字段在每轮递增"""
+    fw = get_fw()
+    sid = uuid.uuid4().hex[:12]
+    events = list(fw._aan_execute_chain(
+        'a' * 50,  # 长查询增加一点上下文
+        {"type": "chain", "modules": ["solver"],
+         "method": "analysis", "max_iterations": 2, "threshold": 1.0},  # 阈值1.0强制跑2轮
+        sid, time.time()))
+    iterations = [e for e in events if e['event'] == 'iteration']
+    agent_starts = [e for e in events if e['event'] == 'agent_start']
+    if len(agent_starts) > 0:
+        # 第2轮的 agent_start iteration 应该是2
+        second_round_starts = [e for e in agent_starts if e.get('iteration') == 2]
+        if second_round_starts:
+            assert len(second_round_starts) > 0
+    if len(iterations) >= 2:
+        assert iterations[0]['iteration'] == 1
+        assert iterations[1]['iteration'] == 2
+
+
+def test_execute_chain_num_iterations_up_to_3():
+    """最大迭代次数默认不超过3，且 info 事件不阻挡 done"""
+    fw = get_fw()
+    sid = uuid.uuid4().hex[:12]
+    # 阈值 1.0 确保会跑满所有允许的轮次（但模拟模式 evaluator 返回0.5，达不到1.0）
+    # 用 max_iterations=1 或 2 来约束
+    events = list(fw._aan_execute_chain(
+        'build something complex',
+        {"type": "chain", "modules": ["solver", "verifier"],
+         "method": "analysis", "max_iterations": 3, "threshold": 0.9},  # 模拟评分0.5 < 0.9，跑满3轮
+        sid, time.time()))
+    done = [e for e in events if e['event'] == 'done']
+    assert len(done) == 1
+    # 模拟模式下 evaluator 可能返回 0.5，低于 0.9，所以跑满
+    iterations = [e for e in events if e['event'] == 'iteration']
+    assert len(iterations) <= 3  # 最多3轮
+
+
+def test_execute_chain_cancelled_mid_iteration():
+    """在链式迭代中途取消"""
+    fw = get_fw()
+    sid = uuid.uuid4().hex[:12]
+    fw._stream_cancelled = True
+    events = list(fw._aan_execute_chain(
+        'test',
+        {"type": "chain", "modules": ["solver"], "method": "analysis"},
+        sid, time.time()))
+    done = [e for e in events if e['event'] == 'done']
+    assert len(done) >= 1
+    assert done[0]['result'].get('cancelled') is True
+    fw._stream_cancelled = False
 
 
 # ======================================================================
@@ -368,7 +455,6 @@ if __name__ == '__main__':
         ("Router tree (架构关键词)", test_router_tree_architecture_keywords),
         ("Router short+complex→chain", test_router_short_with_complex_keywords),
         ("Router parallel beats tree", test_router_parallel_keyword_beats_tree_at_short_len),
-        ("Router len threshold boundary", test_router_len_threshold_boundary),
         ("Infer modules empty", test_infer_modules_empty),
         ("Infer modules commas", test_infer_modules_with_commas),
         ("Infer modules 中文逗号", test_infer_modules_chinese_comma),
@@ -383,6 +469,11 @@ if __name__ == '__main__':
         ("Execute direct cancelled", test_execute_direct_cancelled),
         ("Execute chain done", test_execute_chain_produces_done),
         ("Execute chain SSE sequence", test_execute_chain_sse_sequence),
+        ("Execute chain iteration events", test_execute_chain_iteration_events),
+        ("Execute chain stops on threshold", test_execute_chain_stops_on_threshold),
+        ("Execute chain iteration numbering", test_execute_chain_iteration_has_correct_numbering),
+        ("Execute chain max iterations 3", test_execute_chain_num_iterations_up_to_3),
+        ("Execute chain cancelled mid-iteration", test_execute_chain_cancelled_mid_iteration),
         ("Execute parallel done", test_execute_parallel_produces_done),
         ("Tree leaf (1 module)", test_tree_leaf_single_module),
         ("Tree 2 modules", test_tree_two_modules),

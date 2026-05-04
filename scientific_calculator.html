@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科学计算器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 20px;
+            width: 360px;
+            max-width: 100%;
+        }
+
+        .display {
+            background: #222;
+            color: #fff;
+            font-size: 2.2rem;
+            font-family: 'Courier New', monospace;
+            padding: 15px 20px;
+            text-align: right;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            overflow-x: hidden;
+            word-break: break-all;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px 0;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: #f0f0f0;
+            color: #333;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            outline: none;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:hover {
+            filter: brightness(0.95);
+        }
+
+        .span-two {
+            grid-column: span 2;
+        }
+
+        .operator {
+            background: #ff9500;
+            color: white;
+        }
+
+        .operator:hover {
+            background: #e68a00;
+        }
+
+        .function {
+            background: #5ac8fa;
+            color: white;
+        }
+
+        .function:hover {
+            background: #4ab8eb;
+        }
+
+        .number {
+            background: #f8f8f8;
+        }
+
+        .number:hover {
+            background: #e8e8e8;
+        }
+
+        .equals {
+            background: #34c759;
+            color: white;
+        }
+
+        .equals:hover {
+            background: #2db84f;
+        }
+
+        .clear {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .clear:hover {
+            background: #e0352b;
+        }
+
+        .special {
+            background: #5856d6;
+            color: white;
+        }
+
+        .special:hover {
+            background: #4e4cc6;
+        }
+
+        /* 角度/弧度切换按钮 */
+        .mode {
+            background: #8e8e93;
+            color: white;
+        }
+
+        .mode:hover {
+            background: #7d7d82;
+        }
+
+        @media (max-width: 400px) {
+            .calculator {
+                padding: 15px;
+                width: 100%;
+            }
+            button {
+                padding: 12px 0;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="buttons">
+            <!-- 第一行：科学函数 -->
+            <button class="function" data-action="sin">sin</button>
+            <button class="function" data-action="cos">cos</button>
+            <button class="function" data-action="tan">tan</button>
+            <button class="function" data-action="log">log</button>
+            <button class="function" data-action="ln">ln</button>
+
+            <!-- 第二行 -->
+            <button class="function" data-action="sqrt">√</button>
+            <button class="function" data-action="square">x²</button>
+            <button class="function" data-action="pow">x^y</button>
+            <button class="function" data-action="factorial">x!</button>
+            <button class="special" data-action="pi">π</button>
+
+            <!-- 第三行 -->
+            <button class="special" data-action="e">e</button>
+            <button class="mode" data-action="mode">RAD</button>
+            <button class="clear" data-action="clear">C</button>
+            <button class="clear" data-action="backspace">⌫</button>
+            <button class="operator" data-action="divide">÷</button>
+
+            <!-- 第四行 -->
+            <button class="number" data-action="7">7</button>
+            <button class="number" data-action="8">8</button>
+            <button class="number" data-action="9">9</button>
+            <button class="operator" data-action="multiply">×</button>
+            <button class="operator" data-action="subtract">−</button>
+
+            <!-- 第五行 -->
+            <button class="number" data-action="4">4</button>
+            <button class="number" data-action="5">5</button>
+            <button class="number" data-action="6">6</button>
+            <button class="operator" data-action="add">+</button>
+            <button class="special" data-action="negate">±</button>
+
+            <!-- 第六行 -->
+            <button class="number" data-action="1">1</button>
+            <button class="number" data-action="2">2</button>
+            <button class="number" data-action="3">3</button>
+            <button class="equals span-two" data-action="equals">=</button>
+
+            <!-- 第七行 -->
+            <button class="number" data-action="0">0</button>
+            <button class="number" data-action="decimal">.</button>
+            <!-- 占位，保持网格 -->
+            <button disabled style="visibility:hidden;"></button>
+            <button disabled style="visibility:hidden;"></button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 显示元素
+            const display = document.getElementById('display');
+
+            // 状态
+            let currentInput = '0';        // 当前显示文本
+            let previousValue = null;       // 前一个操作数（数值）
+            let operator = null;            // 当前等待的运算符
+            let shouldResetDisplay = false; // 按下数字时是否清空显示（刚按过运算符或等号）
+            let isRadMode = true;           // 角度模式 true=弧度, false=角度
+            let pendingExponent = false;    // 是否正在等待指数运算的第二个数
+
+            // 更新显示
+            function updateDisplay(value) {
+                display.textContent = value;
+            }
+
+            // 将当前显示文本转为数值
+            function getDisplayValue() {
+                return parseFloat(currentInput);
+            }
+
+            // 设置当前显示文本
+            function setDisplayValue(val) {
+                // 处理显示格式，避免太长
+                if (typeof val === 'number' && !Number.isInteger(val)) {
+                    currentInput = val.toPrecision(12);
+                } else {
+                    currentInput = String(val);
+                }
+                // 如果结果是NaN或Infinity，显示Error
+                if (currentInput === 'NaN' || currentInput === 'Infinity' || currentInput === '-Infinity') {
+                    currentInput = 'Error';
+                }
+                updateDisplay(currentInput);
+            }
+
+            // 执行基本运算
+            function compute(prev, curr, op) {
+                const a = prev;
+                const b = curr;
+                switch(op) {
+                    case 'add': return a + b;
+                    case 'subtract': return a - b;
+                    case 'multiply': return a * b;
+                    case 'divide': return a / b;
+                    case 'pow': return Math.pow(a, b);
+                    default: return curr;
+                }
+            }
+
+            // 应用科学函数到当前值
+            function applyFunction(func) {
+                let val = getDisplayValue();
+                let result;
+                switch(func) {
+                    case 'sin':
+                        result = isRadMode ? Math.sin(val) : Math.sin(val * Math.PI / 180);
+                        break;
+                    case 'cos':
+                        result = isRadMode ? Math.cos(val) : Math.cos(val * Math.PI / 180);
+                        break;
+                    case 'tan':
+                        result = isRadMode ? Math.tan(val) : Math.tan(val * Math.PI / 180);
+                        break;
+                    case 'log':
+                        result = Math.log10(val);
+                        break;
+                    case 'ln':
+                        result = Math.log(val);
+                        break;
+                    case 'sqrt':
+                        result = Math.sqrt(val);
+                        break;
+                    case 'square':
+                        result = val * val;
+                        break;
+                    case 'factorial':
+                        result = factorial(val);
+                        break;
+                    default:
+                        result = val;
+                }
+                if (isNaN(result) || !isFinite(result)) {
+                    setDisplayValue('Error');
+                } else {
+                    setDisplayValue(result);
+                }
+                // 科学函数后，清空运算符状态（因为已经计算）
+                previousValue = null;
+                operator = null;
+                shouldResetDisplay = true;
+                pendingExponent = false;
+            }
+
+            // 阶乘函数（支持小数伽马函数扩展？ 简化：只对非负整数有效，否则返回NaN）
+            function factorial(n) {
+                if (n < 0) return NaN;
+                if (n === 0 || n === 1) return 1;
+                if (n > 170) return Infinity; // 太大
+                // 如果n是整数，使用循环
+                if (Number.isInteger(n)) {
+                    let result = 1;
+                    for (let i = 2; i <= n; i++) {
+                        result *= i;
+                    }
+                    return result;
+                } else {
+                    // 近似计算（简化：使用Gamma函数，但这里返回NaN）
+                    return NaN;
+                }
+            }
+
+            // 处理数字输入
+            function inputNumber(digit) {
+                if (shouldResetDisplay) {
+                    currentInput = digit;
+                    shouldResetDisplay = false;
+                } else {
+                    if (currentInput === '0' && digit !== '.') {
+                        currentInput = digit;
+                    } else {
+                        // 限制长度，避免过长
+                        if (currentInput.replace('-','').replace('.','').length >= 15) return;
+                        currentInput += digit;
+                    }
+                }
+                updateDisplay(currentInput);
+            }
+
+            // 处理小数点
+            function inputDecimal() {
+                if (shouldResetDisplay) {
+                    currentInput = '0.';
+                    shouldResetDisplay = false;
+                } else {
+                    if (!currentInput.includes('.')) {
+                        currentInput += '.';
+                    }
+                }
+                updateDisplay(currentInput);
+            }
+
+            // 处理正负号
+            function negate() {
+                if (currentInput !== '0' && currentInput !== 'Error') {
+                    if (currentInput.startsWith('-')) {
+                        currentInput = currentInput.slice(1);
+                    } else {
+                        currentInput = '-' + currentInput;
+                    }
+                    updateDisplay(currentInput);
+                }
+            }
+
+            // 处理退格
+            function backspace() {
+                if (currentInput.length > 1) {
+                    currentInput = currentInput.slice(0, -1);
+                    if (currentInput === '-' || currentInput === '') currentInput = '0';
+                } else {
+                    currentInput = '0';
+                }
+                updateDisplay(currentInput);
+            }
+
+            // 清除全部
+            function clearAll() {
+                currentInput = '0';
+                previousValue = null;
+                operator = null;
+                shouldResetDisplay = false;
+                pendingExponent = false;
+                updateDisplay(currentInput);
+            }
+
+            // 处理运算符
+            function handleOperator(op) {
+                if (op === 'equals') {
+                    // 等号
+                    if (operator && previousValue !== null) {
+                        const curr = getDisplayValue();
+                        const result = compute(previousValue, curr, operator);
+                        setDisplayValue(result);
+                        previousValue = null;
+                        operator = null;
+                        shouldResetDisplay = true;
+                        pendingExponent = false;
+                    }
+                    return;
+                }
+
+                // 如果是幂运算，特殊处理：需要等号或下次运算符才计算
+                if (op === 'pow') {
+                    if (previousValue !== null && operator !== 'pow') {
+                        // 如果有之前挂起的运算符，先计算它
+                        const curr = getDisplayValue();
+                        const result = compute(previousValue, curr, operator);
+                        setDisplayValue(result);
+                        previousValue = getDisplayValue(); // 刚计算的结果作为前一个值
+                        operator = 'pow';
+                        shouldResetDisplay = true;
+                        pendingExponent = true;
+                    } else {
+                        // 没有挂起运算符，直接记录
+                        previousValue = getDisplayValue();
+                        operator = 'pow';
+                        shouldResetDisplay = true;
+                        pendingExponent = true;
+                    }
+                    return;
+                }
+
+                // 普通运算符 (add, subtract, multiply, divide)
+                // 如果有前一个运算符且未计算，先计算
+                if (operator && !pendingExponent) {
+                    const curr = getDisplayValue();
+                    const result = compute(previousValue, curr, operator);
+                    setDisplayValue(result);
+                }
+                // 记录当前值和运算符
+                previousValue = getDisplayValue();
+                operator = op;
+                shouldResetDisplay = true;
+                pendingExponent = false;
+            }
+
+            // 切换角度/弧度
+            function toggleMode() {
+                isRadMode = !isRadMode;
+                const modeBtn = document.querySelector('[data-action="mode"]');
+                modeBtn.textContent = isRadMode ? 'RAD' : 'DEG';
+            }
+
+            // 插入常数
+            function insertConstant(constant) {
+                let val;
+                if (constant === 'pi') {
+                    val = Math.PI;
+                } else if (constant === 'e') {
+                    val = Math.E;
+                }
+                setDisplayValue(val);
+                shouldResetDisplay = true;
+                // 如果有挂起的运算符，不清除 previousValue，但应立即显示常数后再继续
+                // 这里不做特殊处理，保持简单
+            }
+
+            // 按钮事件绑定
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const action = this.dataset.action;
+                    if (!action) return;
+
+                    // 如果显示Error，点击任何按钮（除了clear）清空Error状态
+                    if (currentInput === 'Error' && action !== 'clear' && action !== 'backspace') {
+                        clearAll();
+                    }
+
+                    switch(action) {
+                        // 数字
+                        case '0': case '1': case '2': case '3': case '4':
+                        case '5': case '6': case '7': case '8': case '9':
+                            inputNumber(action);
+                            break;
+                        case 'decimal':
+                            inputDecimal();
+                            break;
+                        case 'negate':
+                            negate();
+                            break;
+                        case 'backspace':
+                            backspace();
+                            break;
+                        case 'clear':
+                            clearAll();
+                            break;
+                        // 运算符
+                        case 'add':
+                        case 'subtract':
+                        case 'multiply':
+                        case 'divide':
+                        case 'pow':
+                        case 'equals':
+                            handleOperator(action);
+                            break;
+                        // 科学函数
+                        case 'sin':
+                        case 'cos':
+                        case 'tan':
+                        case 'log':
+                        case 'ln':
+                        case 'sqrt':
+                        case 'square':
+                        case 'factorial':
+                            applyFunction(action);
+                            break;
+                        // 常数
+                        case 'pi':
+                        case 'e':
+                            insertConstant(action);
+                            break;
+                        // 模式切换
+                        case 'mode':
+                            toggleMode();
+                            break;
+                        default:
+                            break;
+                    }
+                });
+            });
+
+            // 键盘支持（简单）
+            document.addEventListener('keydown', function(e) {
+                const key = e.key;
+                if (key >= '0' && key <= '9') {
+                    document.querySelector(`button[data-action="${key}"]`).click();
+                } else if (key === '.') {
+                    document.querySelector('button[data-action="decimal"]').click();
+                } else if (key === '+') {
+                    document.querySelector('button[data-action="add"]').click();
+                } else if (key === '-') {
+                    document.querySelector('button[data-action="subtract"]').click();
+                } else if (key === '*') {
+                    document.querySelector('button[data-action="multiply"]').click();
+                } else if (key === '/') {
+                    document.querySelector('button[data-action="divide"]').click();
+                } else if (key === 'Enter' || key === '=') {
+                    document.querySelector('button[data-action="equals"]').click();
+                } else if (key === 'Backspace') {
+                    document.querySelector('button[data-action="backspace"]').click();
+                } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                    document.querySelector('button[data-action="clear"]').click();
+                } else if (key === 's') {
+                    document.querySelector('button[data-action="sin"]').click();
+                } else if (key === 'c') { // 冲突，用小c清屏已用
+                    // do nothing
+                }
+            });
+
+            // 初始化显示
+            updateDisplay('0');
+        })();
+    </script>
+</body>
+</html>

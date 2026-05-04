@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLMA — 插件管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+/* ===== Plugin-specific Styles ===== */
+.plugins-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.plugins-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.plugins-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.plugins-summary {
+  display: flex;
+  gap: 16px;
+}
+.summary-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.summary-chip strong {
+  color: var(--text-primary);
+}
+
+/* ===== Plugin Grid ===== */
+.plugins-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+.plugin-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all 0.2s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.plugin-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.plugin-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.plugin-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+.plugin-id {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+.plugin-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.plugin-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.plugin-badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.badge-tool { background: rgba(74, 108, 247, 0.15); color: var(--accent-1); }
+.badge-strategy { background: rgba(124, 92, 252, 0.15); color: var(--accent-2); }
+.badge-judge { background: rgba(6, 214, 160, 0.15); color: var(--accent-3); }
+.badge-provider { background: rgba(255, 209, 102, 0.15); color: var(--accent-4); }
+.badge-custom { background: rgba(239, 71, 111, 0.15); color: var(--accent-5); }
+.badge-unknown { background: rgba(136, 146, 176, 0.15); color: var(--text-secondary); }
+
+.badge-state {
+  background: rgba(136, 146, 176, 0.1);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+.badge-state.running {
+  background: rgba(6, 214, 160, 0.12);
+  color: var(--accent-3);
+  border-color: rgba(6, 214, 160, 0.3);
+}
+.badge-state.error {
+  background: rgba(239, 71, 111, 0.12);
+  color: var(--accent-5);
+  border-color: rgba(239, 71, 111, 0.3);
+}
+.badge-state.loaded,
+.badge-state.initialized {
+  background: rgba(74, 108, 247, 0.12);
+  color: var(--accent-1);
+  border-color: rgba(74, 108, 247, 0.3);
+}
+.badge-state.unloaded {
+  background: rgba(136, 146, 176, 0.08);
+  color: var(--text-muted);
+  border-color: rgba(136, 146, 176, 0.15);
+}
+
+.plugin-version {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.plugin-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+.plugin-actions .btn {
+  font-size: 0.78rem;
+  padding: 5px 12px;
+}
+
+/* ===== Detail Panel (slide-in) ===== */
+.detail-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: none;
+}
+.detail-panel {
+  position: fixed;
+  top: 0; right: -480px;
+  width: 460px;
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  z-index: 201;
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+}
+.detail-panel.open {
+  right: 0;
+}
+.detail-overlay.open {
+  display: block;
+}
+.detail-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.15s;
+}
+.detail-close:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-5);
+  color: var(--accent-5);
+}
+.detail-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  padding-right: 40px;
+}
+.detail-id {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-bottom: 16px;
+}
+.detail-section {
+  margin-bottom: 20px;
+}
+.detail-section h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.detail-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.detail-table td {
+  padding: 6px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.detail-table td:first-child {
+  color: var(--text-muted);
+  width: 120px;
+}
+.detail-table td:last-child {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+.detail-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--text-muted);
+}
+.empty-state svg {
+  width: 64px; height: 64px;
+  opacity: 0.3;
+  margin-bottom: 16px;
+}
+.empty-state h3 {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.empty-state p {
+  font-size: 0.85rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ===== Loading ===== */
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: var(--text-muted);
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-1);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  z-index: 300;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.25s;
+  box-shadow: var(--shadow);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.success { border-color: var(--accent-3); }
+.toast.error { border-color: var(--accent-5); }
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-brand">
+      <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
+        <svg class="header-logo" viewBox="0 0 32 32" width="32" height="32">
+          <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
+          <circle cx="16" cy="16" r="6" fill="currentColor" opacity="0.6"/>
+          <path d="M2 16h8M22 16h8M16 2v8M16 22v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          <circle cx="16" cy="6" r="1.5" fill="currentColor"/>
+          <circle cx="16" cy="26" r="1.5" fill="currentColor"/>
+          <circle cx="6" cy="16" r="1.5" fill="currentColor"/>
+          <circle cx="26" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+        <div>
+          <h1 class="header-title">CLMA</h1>
+          <span class="header-subtitle">Closed-Loop Multi-Agent Framework</span>
+        </div>
+      </a>
+    </div>
+    <div class="header-actions">
+      <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:500;">🔌 插件管理</span>
+    </div>
+  </header>
+
+  <div class="plugins-page">
+    <!-- Header -->
+    <div class="plugins-header">
+      <h2>🔌 插件管理</h2>
+      <div class="plugins-summary">
+        <span class="summary-chip">已加载 <strong id="loadedCount">0</strong></span>
+        <span class="summary-chip">发现 <strong id="totalCount">0</strong></span>
+        <span class="summary-chip">扫描目录 <strong id="dirCount">0</strong></span>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingState" class="loading">
+      <div class="spinner"></div>
+      <p>扫描插件中...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="12" y1="18" x2="12" y2="12"/>
+        <line x1="9" y1="15" x2="15" y2="15"/>
+      </svg>
+      <h3>暂无插件</h3>
+      <p>将 .so 插件文件放入插件目录，系统会自动发现它们。<br>插件目录：<span id="emptyDir" style="font-family:var(--font-mono);font-size:0.8rem;"></span></p>
+    </div>
+
+    <!-- Plugin Grid -->
+    <div id="pluginsGrid" class="plugins-grid" style="display:none;"></div>
+  </div>
+
+  <!-- Detail Overlay -->
+  <div id="detailOverlay" class="detail-overlay" onclick="closeDetail()"></div>
+
+  <!-- Detail Panel -->
+  <div id="detailPanel" class="detail-panel">
+    <button class="detail-close" onclick="closeDetail()">✕</button>
+    <h3 class="detail-title" id="detailName">—</h3>
+    <div class="detail-id" id="detailId">—</div>
+
+    <div class="detail-section">
+      <h4>描述</h4>
+      <p class="detail-description" id="detailDesc">—</p>
+    </div>
+
+    <div class="detail-section">
+      <h4>详情</h4>
+      <table class="detail-table">
+        <tr><td>类型</td><td id="detailType">—</td></tr>
+        <tr><td>状态</td><td id="detailState">—</td></tr>
+        <tr><td>版本</td><td id="detailVersion">—</td></tr>
+        <tr><td>作者</td><td id="detailAuthor">—</td></tr>
+        <tr><td>许可证</td><td id="detailLicense">—</td></tr>
+        <tr><td>API 版本</td><td id="detailApiVersion">—</td></tr>
+        <tr><td>依赖</td><td id="detailDeps">—</td></tr>
+        <tr><td>被依赖</td><td id="detailDependents">—</td></tr>
+      </table>
+    </div>
+
+    <div class="detail-section" id="detailActionsSection">
+      <h4>操作</h4>
+      <div class="detail-actions" id="detailActions"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+<script>
+const API_BASE = '';
+
+// ===== State =====
+let pluginsData = [];
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', loadPlugins);
+
+async function loadPlugins() {
+  showLoading(true);
+  try {
+    const res = await fetch(API_BASE + '/api/plugins');
+    const data = await res.json();
+    pluginsData = data.plugins || [];
+    renderSummary(data);
+    renderGrid(pluginsData);
+  } catch (err) {
+    showToast('Failed to load plugins: ' + err.message, 'error');
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('emptyState').querySelector('h3').textContent = '加载失败';
+  }
+  showLoading(false);
+}
+
+function showLoading(show) {
+  document.getElementById('loadingState').style.display = show ? 'block' : 'none';
+}
+
+function renderSummary(data) {
+  document.getElementById('loadedCount').textContent = data.loaded_count || 0;
+  document.getElementById('totalCount').textContent = data.count || 0;
+  document.getElementById('dirCount').textContent = (data.directories || []).length;
+  document.getElementById('emptyDir').textContent = (data.directories || []).join(', ') || '—';
+}
+
+function renderGrid(plugins) {
+  const grid = document.getElementById('pluginsGrid');
+  const empty = document.getElementById('emptyState');
+
+  if (plugins.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+
+  grid.innerHTML = plugins.map(p => `
+    <div class="plugin-card" onclick="openDetail('${escHtml(p.id)}')">
+      <div class="plugin-card-header">
+        <div>
+          <h3 class="plugin-name">${escHtml(p.name || p.id)}</h3>
+          <div class="plugin-id">${escHtml(p.id)}</div>
+        </div>
+        <span class="plugin-version">v${escHtml(p.version)}</span>
+      </div>
+      <div class="plugin-description">${escHtml(p.description || 'No description')}</div>
+      <div class="plugin-meta">
+        <span class="plugin-badge badge-${escHtml(p.type)}">${escHtml(p.type)}</span>
+        <span class="plugin-badge badge-state ${p.state}">${escHtml(p.state)}</span>
+      </div>
+      <div class="plugin-actions">
+        ${renderCardActions(p)}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCardActions(p) {
+  const actions = [];
+  if (p.state === 'unloaded') {
+    actions.push(`<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();loadPlugin('${escHtml(p.id)}')">Load</button>`);
+  }
+  if (p.state === 'running') {
+    actions.push(`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();togglePlugin('${escHtml(p.id)}')">Stop</button>`);
+  }
+  if (p.state === 'initialized' || p.state === 'loaded') {
+    actions.push(`<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();togglePlugin('${escHtml(p.id)}')">Start</button>`);
+  }
+  if (p.state === 'error') {
+    actions.push(`<button class="btn btn-warning btn-sm" onclick="event.stopPropagation();recoverPlugin('${escHtml(p.id)}')">Recover</button>`);
+  }
+  return actions.join('');
+}
+
+// ===== Detail Panel =====
+async function openDetail(pluginId) {
+  const panel = document.getElementById('detailPanel');
+  const overlay = document.getElementById('detailOverlay');
+
+  // Quick fill from cached data
+  const p = pluginsData.find(x => x.id === pluginId);
+  if (p) {
+    document.getElementById('detailName').textContent = p.name || p.id;
+    document.getElementById('detailId').textContent = p.id;
+    document.getElementById('detailDesc').textContent = p.description || 'No description';
+    document.getElementById('detailType').textContent = p.type;
+    document.getElementById('detailState').textContent = p.state;
+    document.getElementById('detailVersion').textContent = 'v' + p.version;
+    document.getElementById('detailAuthor').textContent = p.author || '—';
+    document.getElementById('detailLicense').textContent = p.license || '—';
+    document.getElementById('detailApiVersion').textContent = p.api_version || '—';
+    document.getElementById('detailDeps').textContent = (p.dependencies || []).join(', ') || 'none';
+    document.getElementById('detailDependents').textContent = '...';
+  }
+
+  panel.classList.add('open');
+  overlay.classList.add('open');
+
+  // Fetch detail
+  try {
+    const res = await fetch(API_BASE + '/api/plugins/' + encodeURIComponent(pluginId));
+    const data = await res.json();
+    if (data.plugin) {
+      const dp = data.plugin;
+      document.getElementById('detailDependents').textContent = (dp.dependents || []).join(', ') || 'none';
+
+      // Update actions
+      const actionsDiv = document.getElementById('detailActions');
+      const actions = [];
+
+      if (dp.state === 'running') {
+        actions.push(`<button class="btn btn-ghost" onclick="togglePlugin('${escHtml(pluginId)}')">⏹ Stop Plugin</button>`);
+        actions.push(`<button class="btn btn-ghost" onclick="hotReloadPlugin('${escHtml(pluginId)}')">🔄 Hot Reload</button>`);
+      } else if (dp.state === 'initialized' || dp.state === 'loaded') {
+        actions.push(`<button class="btn btn-primary" onclick="togglePlugin('${escHtml(pluginId)}')">▶ Start Plugin</button>`);
+      } else if (dp.state === 'error') {
+        actions.push(`<button class="btn btn-warning" onclick="recoverPlugin('${escHtml(pluginId)}')">🔧 Attempt Recovery</button>`);
+      } else if (dp.state === 'unloaded') {
+        actions.push(`<button class="btn btn-primary" onclick="loadPlugin('${escHtml(pluginId)}')">📦 Load Plugin</button>`);
+      }
+
+      actionsDiv.innerHTML = actions.join('');
+    }
+  } catch (err) {
+    console.warn('Failed to load plugin detail:', err);
+  }
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+// ===== Actions =====
+async function togglePlugin(pluginId) {
+  try {
+    const res = await fetch(API_BASE + '/api/plugins/' + encodeURIComponent(pluginId) + '/toggle', { method: 'POST' });
+    const data = await res.json();
+    showToast(data.success ? `✅ ${data.action}: ${pluginId}` : `❌ Failed to ${data.action || 'toggle'}: ${pluginId}`, data.success ? 'success' : 'error');
+    closeDetail();
+    loadPlugins();
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+async function loadPlugin(pluginId) {
+  try {
+    const res = await fetch(API_BASE + '/api/plugins/' + encodeURIComponent(pluginId) + '/toggle', { method: 'POST' });
+    const data = await res.json();
+    showToast(data.success ? `✅ ${data.action}: ${pluginId}` : `❌ Failed to load: ${pluginId}`, data.success ? 'success' : 'error');
+    closeDetail();
+    loadPlugins();
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+async function hotReloadPlugin(pluginId) {
+  try {
+    const res = await fetch(API_BASE + '/api/plugins/' + encodeURIComponent(pluginId) + '/hot-reload', { method: 'POST' });
+    const data = await res.json();
+    showToast(data.success ? `🔄 Hot reloaded: ${pluginId}` : `❌ Hot reload failed: ${pluginId}`, data.success ? 'success' : 'error');
+    closeDetail();
+    loadPlugins();
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+async function recoverPlugin(pluginId) {
+  try {
+    const res = await fetch(API_BASE + '/api/plugins/' + encodeURIComponent(pluginId) + '/recover', { method: 'POST' });
+    const data = await res.json();
+    showToast(data.success ? `🔧 Recovery attempted: ${pluginId}` : `❌ Recovery failed: ${pluginId}`, data.success ? 'success' : 'error');
+    closeDetail();
+    loadPlugins();
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+// ===== Toast =====
+let toastTimeout;
+
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast ' + (type || '');
+  clearTimeout(toastTimeout);
+  // Force reflow
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ===== Utils =====
+function escHtml(s) {
+  if (s == null) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

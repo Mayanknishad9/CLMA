@@ -3199,128 +3199,214 @@ rules:
         }
 
     def _aan_execute_chain(self, query, topology, session_id, timestamp):
-        """链式模式：依次通过指定 agent 列表（类似单闭环但无迭代回溯）"""
+        """链式闭环模式：多轮迭代，评分低于阈值则回溯 Refiner 继续改进
+
+        流程：
+            每轮依次通过 Refiner → Reasoner → Solver → Verifier → Evaluator
+            评分 >= threshold 或达最大轮数 3 时终止输出
+            下一轮 Refiner 接收前一轮的反馈（solver 输出 + verifier 问题 + 评分）
+        """
         import time
+        import re as _re
+        import json as _json
         method = topology.get("method", "analysis")
         modules = topology.get("modules", ["refiner", "reasoner", "solver", "verifier"])
-        memory = {}
+        # 强制 evaluator 在模块列表中用于评分
+        if "evaluator" not in modules:
+            modules = modules + ["evaluator"]
+
+        max_iterations = topology.get("max_iterations", getattr(self, '_max_iterations', 3))
+        threshold = topology.get("threshold", getattr(self, '_threshold', 0.7))
+
+        all_iterations = []    # 所有轮次的评分和内容快照
+        best_score = 0.0
+        best_content = ""
         final_content = ""
 
-        for agent_name in modules:
-            # 每个 agent 开始前检查取消
+        iteration = 0
+        while iteration < max_iterations:
+            iteration += 1
+            memory = {}
+
+            # 取消检查点
             if getattr(self, '_stream_cancelled', False):
                 yield from self._yield_aan_cancelled_done(
-                    query, session_id, final_content,
+                    query, session_id, final_content or best_content,
                     partial_scores={"reasonableness": 0.5, "executability": 0.5,
                                     "satisfaction": 0.5, "overall": 0.5},
                     mode="adaptive_chain_cancelled",
                 )
                 return
 
+            # 构建跨轮次反馈上下文（给 Refiner 使用）
+            prev_feedback = ""
+            if iteration > 1 and all_iterations:
+                prev = all_iterations[-1]
+                prev_scores = prev.get("scores", {})
+                prev_feedback_lines = [
+                    f"[前一轮反馈 (第{iteration-1}轮)]",
+                    f"评分: reasonableness={prev_scores.get('reasonableness','?'):.2f}, "
+                    f"executability={prev_scores.get('executability','?'):.2f}, "
+                    f"satisfaction={prev_scores.get('satisfaction','?'):.2f}, "
+                    f"overall={prev_scores.get('overall','?'):.2f}",
+                    f"阈值: {threshold}",
+                ]
+                if prev_scores.get("overall", 0) < threshold:
+                    prev_feedback_lines.append("→ 评分未达阈值，本轮需要改进以下方面：")
+                    reason = prev.get("verifier_feedback", "")
+                    if reason:
+                        prev_feedback_lines.append(f"  - Verifier 反馈: {reason[:500]}")
+                    prev_feedback_lines.append("  - 请基于前一轮的输出进行改进，不要从头重新生成")
+                    prev_feedback_lines.append("  - 保留已有功能的基础上修复问题")
+                prev_feedback = "\n".join(prev_feedback_lines)
+
+            for agent_name in modules:
+                # 每个 agent 前检查取消
+                if getattr(self, '_stream_cancelled', False):
+                    yield from self._yield_aan_cancelled_done(
+                        query, session_id, final_content or best_content,
+                        partial_scores={"reasonableness": 0.5, "executability": 0.5,
+                                        "satisfaction": 0.5, "overall": 0.5},
+                        mode="adaptive_chain_cancelled",
+                    )
+                    return
+
+                yield {
+                    "event": "agent_start",
+                    "agent": agent_name,
+                    "agent_label": agent_name.title(),
+                    "topology": "chain",
+                    "iteration": iteration,
+                    "timestamp": time.time(),
+                }
+                t0 = time.perf_counter()
+                ctx = {}
+                if agent_name == "solver":
+                    ctx["reasoning"] = memory.get("reasoner", query)
+                    ctx["execution_result"] = ""
+                    ctx["similar_experiences"] = ""
+                elif agent_name == "verifier":
+                    ctx["solution"] = memory.get("solver", "")
+                    ctx["execution_results"] = ""
+                elif agent_name == "refiner":
+                    ctx["iteration"] = str(iteration)
+                    if prev_feedback:
+                        ctx["previous_iteration_info"] = prev_feedback
+                    else:
+                        ctx["previous_iteration_info"] = "(first iteration)"
+                elif agent_name == "evaluator":
+                    ctx["content"] = memory.get("verifier", memory.get("solver", query))
+                    ctx["execution_results"] = ""
+
+                result = self._llm_agent_call(agent_name, query, method, ctx)
+                # LLM 返回后检查取消
+                if getattr(self, '_stream_cancelled', False):
+                    yield from self._yield_aan_cancelled_done(
+                        query, session_id, final_content or best_content,
+                        partial_scores={"reasonableness": 0.5, "executability": 0.5,
+                                        "satisfaction": 0.5, "overall": 0.5},
+                        mode="adaptive_chain_cancelled",
+                    )
+                    return
+                duration_ms = (time.perf_counter() - t0) * 1000
+                memory[agent_name] = result.content
+
+                # solver: auto-execute and capture output
+                if agent_name == "solver":
+                    final_content = result.content or ""
+                    if result.success and result.content:
+                        tr = self._auto_execute_code(result.content)
+                        if tr:
+                            self._tool_results.append(tr)
+                            result.content += f"\n\n=== EXECUTION OUTPUT ===\n✓ Success: {tr.success}\nStdout:\n{tr.stdout}\n=== END EXECUTION OUTPUT ==="
+
+                # verifier: track as fallback content + 提取反馈
+                if agent_name == "verifier":
+                    if not final_content:
+                        final_content = result.content or ""
+
+                # evaluator: 解析评分，保存本轮数据
+                if agent_name == "evaluator":
+                    scores = {"reasonableness": 0.5, "executability": 0.5, "satisfaction": 0.5}
+                    try:
+                        parsed = _strict_json_parse(result.content)
+                        if isinstance(parsed, dict):
+                            scores["reasonableness"] = float(parsed.get("reasonableness", 0.5))
+                            scores["executability"] = float(parsed.get("executability", 0.5))
+                            scores["satisfaction"] = float(parsed.get("satisfaction", 0.5))
+                    except Exception:
+                        pass
+                    scores["overall"] = round(
+                        scores["reasonableness"] * 0.4 +
+                        scores["executability"] * 0.4 +
+                        scores["satisfaction"] * 0.2, 4
+                    )
+
+                content_preview_display = (result.content or "")[:200]
+                chain_token_diff = self._token_snapshot_diff()
+                yield {
+                    "event": "agent_complete",
+                    "agent": agent_name,
+                    "agent_label": agent_name.title(),
+                    "content_preview": content_preview_display,
+                    "duration_ms": round(duration_ms, 1),
+                    "success": result.success,
+                    "prompt_tokens": chain_token_diff["prompt_tokens"],
+                    "completion_tokens": chain_token_diff["completion_tokens"],
+                    "topology": "chain",
+                    "iteration": iteration,
+                    "timestamp": time.time(),
+                }
+
+            # --- 本轮结束：评分 + 迭代判定 ---
+            # 提取 verifier 反馈作为后续迭代的上下文
+            verifier_feedback = memory.get("verifier", "")[:800]
+
+            # 收集本轮数据
+            iter_data = {
+                "iteration": iteration,
+                "scores": scores,
+                "solver_content": memory.get("solver", ""),
+                "verifier_feedback": verifier_feedback,
+                "best_so_far": max(best_score, scores.get("overall", 0)),
+            }
+            all_iterations.append(iter_data)
+
+            if scores.get("overall", 0) > best_score:
+                best_score = scores["overall"]
+                best_content = final_content
+
             yield {
-                "event": "agent_start",
-                "agent": agent_name,
-                "agent_label": agent_name.title(),
-                "topology": "chain",
-                "iteration": 1,
+                "event": "iteration",
+                "iteration": iteration,
+                "scores": scores,
+                "best_so_far": {
+                    "scores": scores,
+                    "overall": best_score,
+                },
                 "timestamp": time.time(),
             }
-            t0 = time.perf_counter()
-            ctx = {}
-            if agent_name == "solver":
-                ctx["reasoning"] = memory.get("reasoner", query)
-                ctx["execution_result"] = ""
-                ctx["similar_experiences"] = ""
-            elif agent_name == "verifier":
-                ctx["solution"] = memory.get("solver", "")
-                ctx["execution_results"] = ""
-            elif agent_name == "refiner":
-                ctx["iteration"] = "1"
-                ctx["previous_iteration_info"] = "(first iteration)"
-            elif agent_name == "evaluator":
-                ctx["content"] = memory.get("verifier", query)
-                ctx["execution_results"] = ""
 
-            result = self._llm_agent_call(agent_name, query, method, ctx)
-            # LLM 返回后检查取消
-            if getattr(self, '_stream_cancelled', False):
-                yield from self._yield_aan_cancelled_done(
-                    query, session_id, final_content,
-                    partial_scores={"reasonableness": 0.5, "executability": 0.5,
-                                    "satisfaction": 0.5, "overall": 0.5},
-                    mode="adaptive_chain_cancelled",
-                )
-                return
-            duration_ms = (time.perf_counter() - t0) * 1000
-            memory[agent_name] = result.content
+            # 评分达标 → 退出迭代
+            if scores.get("overall", 0) >= threshold:
+                break
 
-            # solver: auto-execute and capture output as final content
-            if agent_name == "solver":
-                final_content = result.content or ""
-                if result.success and result.content:
-                    tr = self._auto_execute_code(result.content)
-                    if tr:
-                        self._tool_results.append(tr)
-                        result.content += f"\n\n=== EXECUTION OUTPUT ===\n✓ Success: {tr.success}\nStdout:\n{tr.stdout}\n=== END EXECUTION OUTPUT ==="
-
-            # verifier: also track as fallback final content
-            if agent_name == "verifier" and not final_content:
-                final_content = result.content or ""
-
-            content_preview_display = (result.content or "")[:200]
-            chain_token_diff = self._token_snapshot_diff()
-            yield {
-                "event": "agent_complete",
-                "agent": agent_name,
-                "agent_label": agent_name.title(),
-                "content_preview": content_preview_display,
-                "duration_ms": round(duration_ms, 1),
-                "success": result.success,
-                "prompt_tokens": chain_token_diff["prompt_tokens"],
-                "completion_tokens": chain_token_diff["completion_tokens"],
-                "topology": "chain",
-                "iteration": 1,
-                "timestamp": time.time(),
-            }
-
-        chain_content = final_content
-        # Extract cleaner preview for done event (strip SCORE_META if evaluator ran)
-        if "evaluator" in modules:
-            # evaluator ran — its output has SCORE_META/VERIFIER tags, ignore for content
-            pass  # chain_content stays from solver/verifier
-
-        # Evaluator run for scoring (not part of content chain)
-        if "evaluator" in modules:
-            mem_key = "verifier" if memory.get("verifier") else "solver"
-            eval_ctx = {"content": memory.get(mem_key, query), "execution_results": ""}
-            eval_result = self._llm_agent_call("evaluator", query, method, eval_ctx)
-            # Extract scores from evaluator output
-            try:
-                import json as _json
-                scores = _strict_json_parse(eval_result.content)
-                r = scores.get("reasonableness", 0.7)
-                e = scores.get("executability", 0.7)
-                s = scores.get("satisfaction", 0.7)
-            except Exception:
-                r, e, s = 0.7, 0.7, 0.7
-            scores = {"reasonableness": r, "executability": e, "satisfaction": s}
-            scores["overall"] = round(r * 0.4 + e * 0.4 + s * 0.2, 4)
-        else:
-            # 如果不在模块列表中则使用默认评分
-            scores = {"reasonableness": 0.7, "executability": 0.7, "satisfaction": 0.7, "overall": 0.7}
-
-        import json as _json
+        # --- 迭代结束，输出最终结果 ---
+        output_content = final_content or best_content
         yield {
             "event": "done",
             "result": {
                 "success": True,
-                "content": final_content,
+                "content": output_content,
                 "score": scores,
+                "iterations": all_iterations,
+                "total_iterations": iteration,
+                "best_score": best_score,
             },
             "history": [],
             "stats": {
                 "mode": "adaptive_chain",
-                "total_iterations": 1,
+                "total_iterations": iteration,
                 "total_token_usage": max(self._stream_token_usage, 0),
             },
             "mode": "adaptive_chain",

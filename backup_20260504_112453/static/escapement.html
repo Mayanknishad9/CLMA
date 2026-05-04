@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D 擒纵机构 — 机械表 Escapement Mechanism</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a1a;
+    color: #e0e0e0;
+    font-family: 'Inter', -apple-system, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+  }
+  #canvas-container { width: 100vw; height: 100vh; display: block; }
+  #info {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(10,10,30,0.75); backdrop-filter: blur(12px);
+    padding: 12px 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+    font-size: 13px; color: rgba(255,255,255,0.5); text-align: center;
+    pointer-events: none;
+  }
+  #info strong { color: rgba(255,255,255,0.8); }
+  #stats {
+    position: absolute; top: 20px; right: 20px;
+    background: rgba(10,10,30,0.75); backdrop-filter: blur(12px);
+    padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px; color: rgba(255,255,255,0.4); font-family: monospace;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<div id="stats">FPS: <span id="fpsDisplay">0</span> &nbsp;|&nbsp; 角度: <span id="angleDisplay">0</span>°</div>
+<div id="info">✦ <strong>3D 擒纵机构</strong> · 摆轮振荡 · 擒纵叉联动 · 拖曳旋转视角</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ─── Scene setup ────────────────────────────────────────────
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(30, container.clientWidth / container.clientHeight, 0.1, 100);
+camera.position.set(8, 5, 12);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 4;
+controls.maxDistance = 30;
+controls.autoRotate = false;
+controls.target.set(0, 0, 0);
+
+// ─── Lighting ────────────────────────────────────────────────
+const ambientLight = new THREE.AmbientLight(0x334466, 0.6);
+scene.add(ambientLight);
+
+const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
+mainLight.position.set(5, 10, 7);
+mainLight.castShadow = true;
+mainLight.shadow.mapSize.width = 1024;
+mainLight.shadow.mapSize.height = 1024;
+scene.add(mainLight);
+
+const fillLight = new THREE.DirectionalLight(0x4488ff, 0.8);
+fillLight.position.set(-5, 3, -5);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0x88ccff, 0.5);
+rimLight.position.set(0, -3, 8);
+scene.add(rimLight);
+
+// Subtle environment
+const hemiLight = new THREE.HemisphereLight(0x4466aa, 0x222244, 0.6);
+scene.add(hemiLight);
+
+// ─── Ground reflection (subtle) ─────────────────────────────
+const groundGeo = new THREE.PlaneGeometry(20, 20);
+const groundMat = new THREE.ShadowMaterial({ opacity: 0.3 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -1.8;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ─── Grid ────────────────────────────────────────────────────
+const gridHelper = new THREE.GridHelper(12, 24, 0x334466, 0x223355);
+gridHelper.position.y = -1.8;
+scene.add(gridHelper);
+
+// ─── Materials ───────────────────────────────────────────────
+const goldMat = new THREE.MeshPhysicalMaterial({
+  color: 0xd4af37, metalness: 0.85, roughness: 0.15, envMapIntensity: 1.0,
+});
+const steelMat = new THREE.MeshPhysicalMaterial({
+  color: 0x8899aa, metalness: 0.9, roughness: 0.2, envMapIntensity: 1.0,
+});
+const darkSteelMat = new THREE.MeshPhysicalMaterial({
+  color: 0x445566, metalness: 0.8, roughness: 0.3, envMapIntensity: 0.8,
+});
+const rubyMat = new THREE.MeshPhysicalMaterial({
+  color: 0xcc2244, metalness: 0.1, roughness: 0.05, envMapIntensity: 0.5,
+  clearcoat: 0.8, clearcoatRoughness: 0.1, ior: 1.8,
+});
+const glassMat = new THREE.MeshPhysicalMaterial({
+  color: 0x88bbee, metalness: 0.0, roughness: 0.05, transparent: true,
+  opacity: 0.15, envMapIntensity: 0.3, ior: 1.5, side: THREE.DoubleSide,
+});
+const glowMat = new THREE.MeshPhysicalMaterial({
+  color: 0x88ddff, emissive: 0x4488ff, emissiveIntensity: 0.3,
+  metalness: 0.3, roughness: 0.1, transparent: true, opacity: 0.6,
+});
+
+// ─── Main Plate (base) ──────────────────────────────────────
+const plateGeo = new THREE.CylinderGeometry(3.2, 3.4, 0.15, 64);
+const plateMat = new THREE.MeshPhysicalMaterial({
+  color: 0x1a1a2e, metalness: 0.7, roughness: 0.4, envMapIntensity: 0.5,
+});
+const plate = new THREE.Mesh(plateGeo, plateMat);
+plate.position.y = -0.1;
+plate.receiveShadow = true;
+plate.castShadow = true;
+scene.add(plate);
+
+// Decorative ring
+const ringGeo = new THREE.TorusGeometry(3.0, 0.04, 16, 64);
+const ringMat = new THREE.MeshPhysicalMaterial({
+  color: 0xd4af37, metalness: 0.85, roughness: 0.2, emissive: 0xd4af37, emissiveIntensity: 0.05,
+});
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.rotation.x = Math.PI / 2;
+ring.position.y = 0.05;
+scene.add(ring);
+
+const ring2 = ring.clone();
+ring2.scale.set(0.7, 0.7, 0.7);
+ring2.material = ringMat.clone();
+ring2.material.color.setHex(0x8899aa);
+ring2.material.emissive.setHex(0x8899aa);
+ring2.material.emissiveIntensity = 0.02;
+scene.add(ring2);
+
+// ─── Balance Wheel Group ────────────────────────────────────
+const balanceGroup = new THREE.Group();
+scene.add(balanceGroup);
+
+// Rim of balance wheel
+const rimGeo = new THREE.TorusGeometry(1.5, 0.06, 16, 48);
+const rimMat = new THREE.MeshPhysicalMaterial({
+  color: 0xd4af37, metalness: 0.85, roughness: 0.15,
+});
+const balanceRim = new THREE.Mesh(rimGeo, rimMat);
+balanceRim.position.y = 0.5;
+balanceGroup.add(balanceRim);
+
+// Inner rim
+const innerRimGeo = new THREE.TorusGeometry(1.1, 0.04, 16, 48);
+const innerRimMat = new THREE.MeshPhysicalMaterial({
+  color: 0x8899aa, metalness: 0.8, roughness: 0.2,
+});
+const innerRim = new THREE.Mesh(innerRimGeo, innerRimMat);
+innerRim.position.y = 0.5;
+balanceGroup.add(innerRim);
+
+// Spokes (8 spokes)
+for (let i = 0; i < 8; i++) {
+  const angle = (i / 8) * Math.PI * 2;
+  const spokeGeo = new THREE.BoxGeometry(0.04, 0.04, 1.0);
+  const spokeMat = new THREE.MeshPhysicalMaterial({
+    color: i % 2 === 0 ? 0xd4af37 : 0x8899aa,
+    metalness: 0.8, roughness: 0.2,
+  });
+  const spoke = new THREE.Mesh(spokeGeo, spokeMat);
+  spoke.position.y = 0.5;
+  spoke.position.x = Math.cos(angle) * 1.3;
+  spoke.position.z = Math.sin(angle) * 1.3;
+  spoke.rotation.y = -angle;
+  balanceGroup.add(spoke);
+}
+
+// Center staff (arbor)
+const arborGeo = new THREE.CylinderGeometry(0.08, 0.1, 1.2, 8);
+const arborMat = new THREE.MeshPhysicalMaterial({
+  color: 0x667788, metalness: 0.9, roughness: 0.15,
+});
+const arbor = new THREE.Mesh(arborGeo, arborMat);
+arbor.position.y = 0.5;
+arbor.position.x = 0.0; // centered
+balanceGroup.add(arbor);
+
+// Center jewel
+const jewel = new THREE.Mesh(
+  new THREE.SphereGeometry(0.12, 16, 16),
+  rubyMat
+);
+jewel.position.y = 0.5;
+balanceGroup.add(jewel);
+
+// Hairspring (spiral spring) - decorative coil
+const hairspringGroup = new THREE.Group();
+hairspringGroup.position.y = 0.5;
+balanceGroup.add(hairspringGroup);
+
+const springPoints = [];
+const turns = 5;
+const radiusStart = 0.15;
+const radiusEnd = 0.9;
+const segments = 200;
+
+for (let i = 0; i <= segments; i++) {
+  const t = i / segments;
+  const r = radiusStart + (radiusEnd - radiusStart) * t;
+  const theta = t * turns * 2 * Math.PI;
+  springPoints.push(new THREE.Vector3(
+    Math.cos(theta) * r,
+    (t - 0.5) * 0.15,
+    Math.sin(theta) * r
+  ));
+}
+const springGeo = new THREE.BufferGeometry().setFromPoints(springPoints);
+const springMat = new THREE.LineBasicMaterial({
+  color: 0x88ccff, transparent: true, opacity: 0.4,
+});
+const springLine = new THREE.Line(springGeo, springMat);
+hairspringGroup.add(springLine);
+
+// ─── Pallet Fork (擒纵叉) ────────────────────────────────────
+const palletGroup = new THREE.Group();
+palletGroup.position.set(0, 0.5, 0);
+scene.add(palletGroup);
+
+// Main fork arm
+const forkArmGeo = new THREE.BoxGeometry(0.3, 0.04, 2.2);
+const forkArmMat = new THREE.MeshPhysicalMaterial({
+  color: 0x667788, metalness: 0.85, roughness: 0.25,
+});
+const forkArm = new THREE.Mesh(forkArmGeo, forkArmMat);
+palletGroup.add(forkArm);
+
+// Guard pin (safety)
+const guardPin = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.03, 0.03, 0.3, 8),
+  new THREE.MeshPhysicalMaterial({ color: 0x8899aa, metalness: 0.8, roughness: 0.2 })
+);
+guardPin.position.set(0, 0, 0.3);
+guardPin.rotation.x = Math.PI / 2;
+palletGroup.add(guardPin);
+
+// Pallet stones (ruby) - entry and exit
+function createPalletStone(x, z) {
+  const stone = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 0.05, 0.25),
+    rubyMat
+  );
+  stone.position.set(x, 0, z);
+  return stone;
+}
+
+palletGroup.add(createPalletStone(0, 1.15));
+palletGroup.add(createPalletStone(0, -1.15));
+
+// Impulse pin (to receive impulse from balance)
+const impulsePin = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.04, 0.04, 0.2, 8),
+  new THREE.MeshPhysicalMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.15 })
+);
+impulsePin.position.set(0, 0, 0);
+impulsePin.rotation.x = Math.PI / 2;
+palletGroup.add(impulsePin);
+
+// ─── Escape Wheel (擒纵轮) ──────────────────────────────────
+const escapeWheelGroup = new THREE.Group();
+escapeWheelGroup.position.y = 0.3;
+scene.add(escapeWheelGroup);
+
+// Wheel body
+const wheelBody = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.5, 0.5, 0.06, 32),
+  new THREE.MeshPhysicalMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.15 })
+);
+escapeWheelGroup.add(wheelBody);
+
+// Inner web
+const web = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.2, 0.2, 0.065, 16),
+  new THREE.MeshPhysicalMaterial({ color: 0x667788, metalness: 0.8, roughness: 0.2 })
+);
+escapeWheelGroup.add(web);
+
+// 15 teeth (typical Swiss lever escapement has 15 teeth)
+const numTeeth = 15;
+for (let i = 0; i < numTeeth; i++) {
+  const angle = (i / numTeeth) * Math.PI * 2;
+  const toothGeo = new THREE.BoxGeometry(0.06, 0.08, 0.6);
+  const toothMat = new THREE.MeshPhysicalMaterial({
+    color: i % 2 === 0 ? 0xd4af37 : 0x8899aa,
+    metalness: 0.85, roughness: 0.15,
+  });
+  const tooth = new THREE.Mesh(toothGeo, toothMat);
+  tooth.position.x = Math.cos(angle) * 0.85;
+  tooth.position.z = Math.sin(angle) * 0.85;
+  tooth.rotation.y = -angle;
+  // Point the tooth outward
+  tooth.geometry.translate(0, 0, 0.35);
+  escapeWheelGroup.add(tooth);
+}
+
+// ─── Arbor/Pivot visual ─────────────────────────────────────
+const arbor2 = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.06, 0.08, 0.6, 8),
+  darkSteelMat
+);
+arbor2.position.y = 0.3;
+scene.add(arbor2);
+
+// ─── Star animation ──────────────────────────────────────────
+const starCount = 200;
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(starCount * 3);
+const starSizes = new Float32Array(starCount);
+for (let i = 0; i < starCount; i++) {
+  starPos[i*3] = (Math.random() - 0.5) * 30;
+  starPos[i*3+1] = (Math.random() - 0.5) * 20;
+  starPos[i*3+2] = (Math.random() - 0.5) * 30 - 5;
+  starSizes[i] = Math.random() * 1.5 + 0.5;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+starGeo.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+const starMat2 = new THREE.PointsMaterial({
+  color: 0x6688cc, size: 0.05, transparent: true, opacity: 0.6,
+  sizeAttenuation: true,
+});
+const stars = new THREE.Points(starGeo, starMat2);
+scene.add(stars);
+
+// ─── Animation state ─────────────────────────────────────────
+const state = {
+  time: 0,
+  balanceAngle: 0,
+  palletAngle: 0,
+  escapeWheelAngle: 0,
+  amplitude: 0.8,
+  beat: 0,
+  locked: false,
+  lastEscapeStep: 0,
+};
+
+// ─── FPS counter ─────────────────────────────────────────────
+let frameCount = 0, lastFpsUpdate = 0;
+const fpsDisplay = document.getElementById('fpsDisplay');
+const angleDisplay = document.getElementById('angleDisplay');
+
+// ─── Animation Loop ─────────────────────────────────────────
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min((time - state.time) / 1000, 0.05);
+  state.time = time;
+
+  // ── Balance wheel oscillation (simple harmonic motion) ──
+  // Period: ~0.6s (180 BPM - typical watch speed)
+  const period = 0.6;
+  const beatPhase = (time / 1000) / period;
+  state.beat = beatPhase;
+
+  // Simple harmonic: angle = amplitude * sin(2*pi * phase)
+  const rawAngle = state.amplitude * Math.sin(beatPhase * Math.PI * 2);
+
+  // Interpolate for smooth animation
+  state.balanceAngle += (rawAngle - state.balanceAngle) * 0.3;
+
+  // ── Pallet fork follows balance with offset and lock ──
+  // The pallet fork changes state when balance crosses zero with correct direction
+  const crossingUp = Math.sin(beatPhase * Math.PI * 2) > 0.3;
+  const crossingDown = Math.sin(beatPhase * Math.PI * 2) < -0.3;
+
+  // Pallet fork snaps between two positions (left/right lock)
+  const snapTarget = state.balanceAngle > 0 ? 0.35 : -0.35;
+  state.palletAngle += (snapTarget - state.palletAngle) * 0.08;
+
+  // ── Escape wheel advances in discrete steps ──
+  // Each beat advances one tooth
+  const step = Math.floor(beatPhase % 1 * 2); // 0 or 1 per beat
+  if (step !== state.lastEscapeStep && crossingUp) {
+    state.escapeWheelAngle += (2 * Math.PI / numTeeth);
+  }
+  state.lastEscapeStep = step;
+
+  // ── Apply rotations ──
+  // Balance wheel: rotates on Z axis
+  balanceGroup.rotation.z = state.balanceAngle;
+
+  // Pallet fork: rotates on Z axis (half the amplitude, opposite phase)
+  palletGroup.rotation.z = state.palletAngle;
+
+  // Escape wheel: slow rotation based on stepped advance
+  escapeWheelGroup.rotation.y = state.escapeWheelAngle + Math.sin(beatPhase * Math.PI * 2) * 0.008;
+
+  // ── Subtle floating animation ──
+  balanceGroup.position.y = 0.5 + Math.sin(time / 1500) * 0.02;
+  palletGroup.position.y = 0.5 + Math.sin(time / 1800 + 1) * 0.02;
+
+  // ── Star rotation ──
+  stars.rotation.y += dt * 0.01;
+
+  controls.update();
+  renderer.render(scene, camera);
+
+  // ── FPS ──
+  frameCount++;
+  if (time - lastFpsUpdate >= 1000) {
+    fpsDisplay.textContent = frameCount;
+    angleDisplay.textContent = ((state.balanceAngle / state.amplitude) * 100).toFixed(1);
+    frameCount = 0;
+    lastFpsUpdate = time;
+  }
+}
+
+animate(0);
+
+// ─── Resize handler ──────────────────────────────────────────
+window.addEventListener('resize', () => {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+</script>
+</body>
+</html>
