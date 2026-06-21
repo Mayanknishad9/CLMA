@@ -691,7 +691,7 @@ class ToolExecutor:
         if os.path.isabs(path):
             return None
         # Reject null bytes and explicit parent-directory segments
-        if " " in path:
+        if "\x00" in path:
             return None
         parts = path.replace("\\", "/").split("/")
         if ".." in parts:
