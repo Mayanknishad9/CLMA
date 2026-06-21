@@ -678,19 +678,34 @@ class ToolExecutor:
         return False
     
     def _resolve_sandbox_path(self, path: str) -> str | None:
-        """将给定路径解析为沙箱内的绝对路径。若越界返回 None。
-        release/v2: reject empty paths early for stability."""
+        """Resolve path strictly inside the sandbox; return None if outside.
+
+        Security fix: block path traversal via `..`, absolute paths, and the
+        classic startswith bypass (e.g. /tmp/sandbox vs /tmp/sandbox_evil).
+
+        release/v2: also reject empty paths early (release-line stability).
+        """
         if not path or not str(path).strip():
             return None
+        # Never honor attacker-controlled absolute paths
         if os.path.isabs(path):
-            combined = path
-        else:
-            combined = os.path.join(self._sandbox_dir, path)
-        combined = os.path.normpath(os.path.abspath(combined))
-        if not combined.startswith(self._sandbox_dir):
+            return None
+        # Reject null bytes and explicit parent-directory segments
+        if "\x00" in path:
+            return None
+        parts = path.replace("\\", "/").split("/")
+        if ".." in parts:
+            return None
+        sandbox_root = os.path.realpath(self._sandbox_dir)
+        combined = os.path.realpath(os.path.join(sandbox_root, path))
+        try:
+            common = os.path.commonpath([sandbox_root, combined])
+        except ValueError:
+            return None
+        if common != sandbox_root:
             return None
         return combined
-    
+
     def _write_temp_file(self, content: str, ext: str) -> str:
         """将内容写入沙箱内的临时文件。"""
         path = os.path.join(self._sandbox_dir, f"script_{int(time.time()*1000000)}.{ext}")
