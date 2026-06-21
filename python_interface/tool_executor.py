@@ -748,7 +748,7 @@ class ToolExecutor:
         if common != sandbox_root:
             return None
         return combined
-    
+
     def _write_temp_file(self, content: str, ext: str) -> str:
         """将内容写入沙箱内的临时文件。"""
         path = os.path.join(self._sandbox_dir, f"script_{int(time.time()*1000000)}.{ext}")
