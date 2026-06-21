@@ -678,7 +678,10 @@ class ToolExecutor:
         return False
     
     def _resolve_sandbox_path(self, path: str) -> str | None:
-        """将给定路径解析为沙箱内的绝对路径。若越界返回 None。"""
+        """将给定路径解析为沙箱内的绝对路径。若越界返回 None。
+        release/v2: reject empty paths early for stability."""
+        if not path or not str(path).strip():
+            return None
         if os.path.isabs(path):
             combined = path
         else:
