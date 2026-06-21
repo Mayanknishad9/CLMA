@@ -678,7 +678,6 @@ class ToolExecutor:
         return False
     
     def _resolve_sandbox_path(self, path: str) -> str | None:
-    def _resolve_sandbox_path(self, path: str) -> str | None:
         """Resolve path strictly inside the sandbox; return None if outside.
 
         Security fix: block path traversal via `..`, absolute paths, and the
@@ -706,7 +705,7 @@ class ToolExecutor:
         if common != sandbox_root:
             return None
         return combined
-    
+
     def _write_temp_file(self, content: str, ext: str) -> str:
         """将内容写入沙箱内的临时文件。"""
         path = os.path.join(self._sandbox_dir, f"script_{int(time.time()*1000000)}.{ext}")
