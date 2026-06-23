@@ -19,18 +19,24 @@ echo " Closed-Loop Multi-Agent Reasoning"
 echo "========================================"
 echo ""
 
-# Rebuild C++ bindings if needed
+# Rebuild C++ bindings if needed (any CPython version / arch, not only 3.14)
 BUILD_DIR="$SCRIPT_DIR/build"
-if [ -f "$BUILD_DIR/python_bindings/clma_core.cpython-314-x86_64-linux-gnu.so" ] || \
-   [ -f "$SCRIPT_DIR/python_interface/clma_core.cpython-314-x86_64-linux-gnu.so" ]; then
-    echo "[✓] Python bindings found"
+shopt -s nullglob
+_bindings=(
+    "$BUILD_DIR/python_bindings"/clma_core.cpython-*.so
+    "$SCRIPT_DIR/python_interface"/clma_core.cpython-*.so
+)
+if [ ${#_bindings[@]} -gt 0 ]; then
+    echo "[✓] Python bindings found (${_bindings[0]##*/})"
 else
     echo "[!] Building Python bindings..."
+    mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
     cmake .. > /dev/null 2>&1
     make -j4 clma_core > /dev/null 2>&1
     echo "[✓] Build complete"
 fi
+shopt -u nullglob
 
 echo "[✓] Starting server at http://0.0.0.0:5000"
 echo ""
