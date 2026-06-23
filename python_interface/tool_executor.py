@@ -727,6 +727,8 @@ class ToolExecutor:
 
         Security fix: block path traversal via `..`, absolute paths, and the
         classic startswith bypass (e.g. /tmp/sandbox vs /tmp/sandbox_evil).
+
+        release/v2: also reject empty paths early (release-line stability).
         """
         if not path or not str(path).strip():
             return None
