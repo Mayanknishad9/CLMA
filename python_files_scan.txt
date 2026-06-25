@@ -1,0 +1,45 @@
+# Python files found via ToolExecutor scan
+# Branch: feat/tool-scan
+
+Comparison/1.py
+Comparison/2.py
+Comparison/3.py
+Comparison/4.py
+Comparison/test_compare.py
+Comparison/test_q5_compare.py
+_scan_py_files.py
+backup_20260501_185001/python_interface/__init__.py
+backup_20260501_185001/python_interface/api_providers.py
+backup_20260501_185001/python_interface/core.py
+backup_20260501_185001/python_interface/experience_store.py
+backup_20260501_185001/python_interface/session_store.py
+backup_20260501_185001/python_interface/tool_executor.py
+backup_20260501_185001/python_interface/web_app.py
+backup_20260501_185001/scripts/auto_update_providers.py
+backup_20260501_185001/tests/test_core_python.py
+backup_20260501_185001/tests/test_dag_planner.py
+backup_20260501_185001/tests/test_experience_store.py
+backup_20260501_185001/tests/test_sandbox_tiering.py
+backup_20260504_112453/__init__.py
+backup_20260504_112453/api_providers.py
+backup_20260504_112453/core.py
+backup_20260504_112453/experience_store.py
+backup_20260504_112453/session_store.py
+backup_20260504_112453/tool_executor.py
+backup_20260504_112453/web_app.py
+python_interface/__init__.py
+python_interface/api_providers.py
+python_interface/core.py
+python_interface/experience_store.py
+python_interface/session_store.py
+python_interface/tool_executor.py
+python_interface/web_app.py
+script_1782386731895819.py
+scripts/auto_update_providers.py
+tests/test_aan.py
+tests/test_core_python.py
+tests/test_dag_planner.py
+tests/test_experience_store.py
+tests/test_sandbox_tiering.py
+
+# Total: 40 Python files
